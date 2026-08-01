@@ -1,0 +1,6 @@
+{
+  "name": "Glow Fitness",
+  "description": "Plataforma completa de e-commerce de moda fitness feminina com loja virtual, checkout transparente e painel administrativo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
