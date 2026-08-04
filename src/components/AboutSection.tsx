@@ -1,8 +1,8 @@
 import React from 'react';
-import { useStore } from '../context/StoreContext';
+import { useNavigate } from 'react-router-dom';
 
 export const AboutSection: React.FC = () => {
-  const { setCurrentView } = useStore();
+  const navigate = useNavigate();
 
   return (
     <section className="py-16 sm:py-24 bg-[#E2B3B1]/30 border-t border-b border-[#1A1A1A]/10">
@@ -36,7 +36,7 @@ export const AboutSection: React.FC = () => {
 
             <div className="pt-4">
               <button
-                onClick={() => setCurrentView('about')}
+                onClick={() => navigate('/about')}
                 className="inline-block border border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white uppercase tracking-widest text-xs font-semibold px-8 py-3.5 transition-colors"
               >
                 SAIBA MAIS

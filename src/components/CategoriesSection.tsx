@@ -1,12 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 
 export const CategoriesSection: React.FC = () => {
-  const { categories, setSelectedCategoryId, setCurrentView } = useStore();
+  const { categories } = useStore();
+  const navigate = useNavigate();
 
   const handleCategoryClick = (slug: string) => {
-    setSelectedCategoryId(slug);
-    setCurrentView('catalog');
+    navigate(`/catalog/${slug}`);
   };
 
   return (

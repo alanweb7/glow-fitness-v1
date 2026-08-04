@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Eye, Heart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product } from '../types';
 
 export const FeaturedProducts: React.FC = () => {
-  const { products, setSelectedProductId, addToCart, wishlist, toggleWishlist, setCurrentView } = useStore();
+  const { products, addToCart, wishlist, toggleWishlist } = useStore();
+  const navigate = useNavigate();
   const featured = products.filter(p => p.isFeatured).slice(0, 4);
 
   return (
@@ -22,7 +24,7 @@ export const FeaturedProducts: React.FC = () => {
               className="bg-white rounded-none border border-[#1A1A1A]/10 overflow-hidden flex flex-col justify-between group hover:shadow-xl transition-all duration-300"
             >
               {/* Image & Badges */}
-              <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 cursor-pointer" onClick={() => setSelectedProductId(prod.id)}>
+              <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 cursor-pointer" onClick={() => navigate(`/product/${prod.id}`)}>
                 <img
                   src={prod.images[0]}
                   alt={prod.name}
@@ -62,7 +64,7 @@ export const FeaturedProducts: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedProductId(prod.id);
+                      navigate(`/product/${prod.id}`);
                     }}
                     className="p-2 bg-white text-neutral-700 hover:text-[#C18282] rounded-full shadow-md transition-colors"
                     title="Ver Detalhes"
@@ -76,7 +78,7 @@ export const FeaturedProducts: React.FC = () => {
               <div className="p-5 text-center flex flex-col flex-1 justify-between bg-white border-t border-[#1A1A1A]/5">
                 <div>
                   <h3
-                    onClick={() => setSelectedProductId(prod.id)}
+                    onClick={() => navigate(`/product/${prod.id}`)}
                     className="font-medium text-sm sm:text-base text-[#1A1A1A] hover:text-[#C18282] cursor-pointer transition-colors"
                   >
                     {prod.name}
@@ -104,7 +106,7 @@ export const FeaturedProducts: React.FC = () => {
                   <button
                     onClick={() => {
                       if (prod.variations && prod.variations.length > 0) {
-                        setSelectedProductId(prod.id);
+                        navigate(`/product/${prod.id}`);
                       } else {
                         addToCart(prod);
                       }
@@ -122,7 +124,7 @@ export const FeaturedProducts: React.FC = () => {
         {/* View All Products Button */}
         <div className="mt-12 text-center">
           <button
-            onClick={() => setCurrentView('catalog')}
+            onClick={() => navigate('/catalog')}
             className="inline-block border border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white uppercase tracking-widest text-xs font-semibold px-8 py-3.5 transition-colors"
           >
             VER TODOS OS PRODUTOS

@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { X, Star, Heart, ShieldCheck, Truck, RefreshCw, ShoppingBag, Check } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const ProductDetailModal: React.FC = () => {
   const {
     products,
-    selectedProductId,
-    setSelectedProductId,
     addToCart,
     wishlist,
     toggleWishlist,
     reviews,
     addReview,
-    setCurrentView,
   } = useStore();
 
-  const product = products.find(p => p.id === selectedProductId);
+  const { productId } = useParams<{ productId: string }>();
+  const navigate = useNavigate();
+
+  const product = products.find(p => p.id === productId);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -29,7 +30,7 @@ export const ProductDetailModal: React.FC = () => {
   const [newRating, setNewRating] = useState(5);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  if (!selectedProductId || !product) return null;
+  if (!productId || !product) return null;
 
   // Set defaults on product load
   const availableColors = Array.from(new Set(product.variations.map(v => v.colorName)));
@@ -62,7 +63,7 @@ export const ProductDetailModal: React.FC = () => {
         
         {/* Close Button */}
         <button
-          onClick={() => setSelectedProductId(null)}
+          onClick={() => navigate(-1)}
           className="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white text-neutral-700 rounded-full shadow transition-colors"
         >
           <X className="w-5 h-5" />
@@ -243,7 +244,6 @@ export const ProductDetailModal: React.FC = () => {
               <button
                 onClick={() => {
                   addToCart(product, currentColor, currentSize, quantity);
-                  setSelectedProductId(null);
                 }}
                 className="w-full bg-[#C18282] hover:bg-[#a96e6e] text-white uppercase tracking-widest text-xs font-semibold py-4 rounded-sm transition-all flex items-center justify-center gap-2 shadow-md"
               >
@@ -254,8 +254,7 @@ export const ProductDetailModal: React.FC = () => {
               <button
                 onClick={() => {
                   addToCart(product, currentColor, currentSize, quantity);
-                  setSelectedProductId(null);
-                  setCurrentView('checkout');
+                  navigate('/checkout');
                 }}
                 className="w-full bg-[#1A1A1A] hover:bg-[#333333] text-white uppercase tracking-widest text-xs font-semibold py-3.5 rounded-sm transition-all"
               >

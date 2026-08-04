@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
@@ -11,8 +12,8 @@ export const CartDrawer: React.FC = () => {
     updateCartQuantity,
     cartSubtotal,
     settings,
-    setCurrentView,
   } = useStore();
+  const navigate = useNavigate();
 
   if (!isCartOpen) return null;
 
@@ -77,7 +78,7 @@ export const CartDrawer: React.FC = () => {
                 <button
                   onClick={() => {
                     setIsCartOpen(false);
-                    setCurrentView('catalog');
+                    navigate('/catalog');
                   }}
                   className="bg-[#C18282] text-white text-xs uppercase tracking-widest font-semibold px-6 py-3 rounded-sm hover:bg-[#a96e6e] transition-colors"
                 >
@@ -148,7 +149,7 @@ export const CartDrawer: React.FC = () => {
               <button
                 onClick={() => {
                   setIsCartOpen(false);
-                  setCurrentView('checkout');
+                  navigate('/checkout');
                 }}
                 className="w-full bg-[#1A1A1A] hover:bg-[#C18282] text-white uppercase tracking-widest text-xs font-semibold py-4 rounded-sm transition-all flex items-center justify-center gap-2 shadow-lg"
               >

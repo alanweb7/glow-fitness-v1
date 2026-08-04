@@ -185,18 +185,12 @@ interface StoreContextType {
   reviews: Review[];
   blogPosts: BlogPost[];
 
-  currentView: 'store' | 'product-detail' | 'catalog' | 'checkout' | 'orders' | 'admin' | 'blog' | 'about';
-  selectedProductId: string | null;
-  selectedCategoryId: string | null;
   searchQuery: string;
   isCartOpen: boolean;
   isQuickSearchOpen: boolean;
   isAiStylistOpen: boolean;
   activeAdminTab: string;
 
-  setCurrentView: (view: StoreContextType['currentView']) => void;
-  setSelectedProductId: (id: string | null) => void;
-  setSelectedCategoryId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setIsCartOpen: (open: boolean) => void;
   setIsQuickSearchOpen: (open: boolean) => void;
@@ -279,9 +273,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [reviews, setReviews] = useState<Review[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
 
-  const [currentView, setCurrentView] = useState<StoreContextType['currentView']>('store');
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
@@ -783,18 +774,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         reviews,
         blogPosts,
 
-        currentView,
-        selectedProductId,
-        selectedCategoryId,
         searchQuery,
         isCartOpen,
         isQuickSearchOpen,
         isAiStylistOpen,
         activeAdminTab,
 
-        setCurrentView,
-        setSelectedProductId,
-        setSelectedCategoryId,
         setSearchQuery,
         setIsCartOpen,
         setIsQuickSearchOpen,
