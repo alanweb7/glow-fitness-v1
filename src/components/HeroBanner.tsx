@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 
 export const HeroBanner: React.FC = () => {
-  const { banners, setCurrentView } = useStore();
+  const { banners } = useStore();
+  const navigate = useNavigate();
   const heroBanner = banners.find(b => b.position === 'hero' && b.active) || banners[0];
 
   return (
@@ -39,7 +41,7 @@ export const HeroBanner: React.FC = () => {
               onClick={() => {
                 const el = document.getElementById('destaques');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
-                else setCurrentView('catalog');
+                else navigate('/catalog');
               }}
               className="bg-[#C18282] hover:bg-[#a96e6e] text-white uppercase tracking-widest text-xs sm:text-sm font-semibold px-8 py-4 rounded-sm transition-all transform hover:-translate-y-0.5 shadow-lg"
             >

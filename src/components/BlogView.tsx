@@ -1,9 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, User, ArrowRight, MessageCircle } from 'lucide-react';
-import { useStore } from '../context/StoreContext';
 
 export const BlogView: React.FC = () => {
-  const { setCurrentView } = useStore();
+  const navigate = useNavigate();
 
   const posts = [
     {
@@ -62,7 +62,7 @@ export const BlogView: React.FC = () => {
 
               <div className="p-5 pt-0">
                 <button
-                  onClick={() => setCurrentView('catalog')}
+                  onClick={() => navigate('/catalog')}
                   className="text-xs font-semibold text-[#C18282] hover:text-[#1A1A1A] flex items-center gap-1 transition-colors"
                 >
                   Ler Artigo Completo <ArrowRight className="w-3.5 h-3.5" />

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Sparkles, Send, Check, ShoppingBag, Loader2 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const AiStylistModal: React.FC = () => {
-  const { isAiStylistOpen, setIsAiStylistOpen, products, setSelectedProductId, addToCart } = useStore();
+  const { isAiStylistOpen, setIsAiStylistOpen, products, addToCart } = useStore();
+  const navigate = useNavigate();
 
   const [prompt, setPrompt] = useState('');
   const [activity, setActivity] = useState('Musculação & Pilates');
@@ -177,7 +179,7 @@ export const AiStylistModal: React.FC = () => {
                           <button
                             onClick={() => {
                               setIsAiStylistOpen(false);
-                              setSelectedProductId(prod.id);
+                              navigate(`/product/${prod.id}`);
                             }}
                             className="text-[#C18282] font-semibold underline text-[11px]"
                           >

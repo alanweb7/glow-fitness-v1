@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Search, ArrowRight, Tag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
@@ -7,10 +8,8 @@ export const QuickSearchModal: React.FC = () => {
     isSearchOpen,
     setIsSearchOpen,
     products,
-    setSelectedProductId,
-    setSelectedCategoryId,
-    setCurrentView,
   } = useStore();
+  const navigate = useNavigate();
 
   const [query, setQuery] = useState('');
 
@@ -83,7 +82,7 @@ export const QuickSearchModal: React.FC = () => {
               <button
                 onClick={() => {
                   setIsSearchOpen(false);
-                  setCurrentView('catalog');
+                  navigate('/catalog');
                 }}
                 className="text-[#C18282] font-semibold hover:underline flex items-center gap-1"
               >
@@ -100,7 +99,7 @@ export const QuickSearchModal: React.FC = () => {
                     key={prod.id}
                     onClick={() => {
                       setIsSearchOpen(false);
-                      setSelectedProductId(prod.id);
+                      navigate(`/product/${prod.id}`);
                     }}
                     className="flex items-center gap-4 p-2.5 rounded hover:bg-[#FAF0EE] cursor-pointer transition-colors border border-transparent hover:border-[#EAD3D0]"
                   >

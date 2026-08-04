@@ -1,9 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Heart, Sparkles, Award } from 'lucide-react';
-import { useStore } from '../context/StoreContext';
 
 export const AboutView: React.FC = () => {
-  const { setCurrentView } = useStore();
+  const navigate = useNavigate();
 
   return (
     <div className="py-16 bg-[#FAF7F6] min-h-screen font-sans">
@@ -66,7 +66,7 @@ export const AboutView: React.FC = () => {
 
         <div className="text-center">
           <button
-            onClick={() => setCurrentView('catalog')}
+            onClick={() => navigate('/catalog')}
             className="bg-[#1A1A1A] text-white text-xs uppercase font-semibold px-8 py-4 rounded hover:bg-[#C18282] transition-colors"
           >
             CONHECER A COLEÇÃO

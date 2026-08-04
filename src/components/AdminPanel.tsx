@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -8,18 +9,41 @@ import {
   Plus,
   Edit,
   Trash2,
-  Check,
-  X,
   TrendingUp,
   DollarSign,
   Users,
-  Eye,
-  Save,
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  Store,
+  LogOut,
+  Menu,
+  X,
+  Search,
+  Bell,
+  Image,
+  FileText,
+  Home,
   Truck,
-  ArrowLeft,
+  Star,
+  Eye,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
 import { Product, Order, Category, Coupon } from '../types';
+import { ImageGallery } from './ImageGallery';
+
+type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'blog' | 'settings';
+
+const menuItems: { id: AdminPage; label: string; icon: React.ReactNode; badge?: number }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { id: 'products', label: 'Produtos', icon: <Package className="w-5 h-5" /> },
+  { id: 'orders', label: 'Pedidos', icon: <ShoppingBag className="w-5 h-5" /> },
+  { id: 'coupons', label: 'Cupons', icon: <Tag className="w-5 h-5" /> },
+  { id: 'banners', label: 'Banners', icon: <Image className="w-5 h-5" /> },
+  { id: 'blog', label: 'Blog', icon: <FileText className="w-5 h-5" /> },
+  { id: 'settings', label: 'Configurações', icon: <Settings className="w-5 h-5" /> },
+];
 
 export const AdminPanel: React.FC = () => {
   const {
@@ -27,6 +51,7 @@ export const AdminPanel: React.FC = () => {
     categories,
     orders,
     coupons,
+    banners,
     settings,
     updateProduct,
     createProduct,
@@ -35,27 +60,27 @@ export const AdminPanel: React.FC = () => {
     updateSettings,
     addCoupon,
     toggleCouponStatus,
-    setCurrentView,
   } = useStore();
+  const { signOut, profile } = useAuth();
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState<'kpis' | 'products' | 'orders' | 'coupons' | 'settings'>('kpis');
-
-  // New Product Modal State
+  const currentPage: AdminPage = (location.pathname.split('/admin/')[1] || 'dashboard') as AdminPage;
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
 
-  // Stats calculation
+  // Stats
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
-  const paidOrdersCount = orders.length;
+  const paidOrdersCount = orders.filter(o => o.status !== 'Cancelado').length;
   const avgTicket = paidOrdersCount > 0 ? totalRevenue / paidOrdersCount : 0;
+  const pendingOrders = orders.filter(o => o.status === 'Pendente').length;
 
-  // Save/Edit Product
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct?.price) return;
 
     if (editingProduct.id) {
-      await updateProduct(editingProduct.id, editingProduct);
+      await updateProduct(editingProduct as Product);
     } else {
       await createProduct({
         name: editingProduct.name,
@@ -73,10 +98,15 @@ export const AdminPanel: React.FC = () => {
         isNew: !!editingProduct.isNew,
         isOnSale: !!editingProduct.isOnSale,
         isFeatured: editingProduct.isFeatured !== false,
-        variations: editingProduct.variations || [
-          { colorName: 'Bordô', colorHex: '#7A2E3B', size: 'M', stock: 10 },
-        ],
+        variations: editingProduct.variations || [],
         tags: editingProduct.tags || ['fitness', 'glow'],
+        stock: editingProduct.stock || 0,
+        minStock: editingProduct.minStock || 3,
+        status: 'active',
+        isBestSeller: false,
+        sku: editingProduct.sku || `GLOW-${Date.now()}`,
+        weightKg: 0.3,
+        dimensionsCm: { height: 5, width: 20, length: 25 },
       });
     }
 
@@ -85,133 +115,386 @@ export const AdminPanel: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F1F0] text-[#1A1A1A] font-sans">
-      
-      {/* Admin Header Navbar */}
-      <header className="bg-[#121212] text-white py-4 px-6 border-b border-neutral-800 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <span className="font-serif italic text-2xl text-[#EAD3D0]">Glow</span>
-          <span className="text-[10px] uppercase tracking-[0.25em] bg-[#C18282] px-2 py-0.5 rounded font-bold">
-            PAINEL ADMINISTRATIVO
-          </span>
-        </div>
-
-        <button
-          onClick={() => setCurrentView('store')}
-          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-300 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Voltar à Loja Principal
-        </button>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-neutral-300 gap-2 overflow-x-auto pb-1 text-xs font-semibold uppercase tracking-wider">
+    <div className="min-h-screen bg-[#f4f6f9] flex">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-40 ${sidebarOpen ? 'w-64' : 'w-20'} bg-[#1a1d21] transition-all duration-300 flex flex-col`}>
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
+          {sidebarOpen && (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#C18282] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">G</span>
+              </div>
+              <span className="text-white font-serif italic text-lg">Glow</span>
+            </div>
+          )}
           <button
-            onClick={() => setActiveTab('kpis')}
-            className={`px-4 py-3 rounded-t flex items-center gap-2 transition-colors ${
-              activeTab === 'kpis' ? 'bg-white border-t-2 border-[#C18282] text-[#1A1A1A] font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-white/60 hover:text-white p-1"
           >
-            <LayoutDashboard className="w-4 h-4" /> Visão Geral & Métricas
-          </button>
-          <button
-            onClick={() => setActiveTab('products')}
-            className={`px-4 py-3 rounded-t flex items-center gap-2 transition-colors ${
-              activeTab === 'products' ? 'bg-white border-t-2 border-[#C18282] text-[#1A1A1A] font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
-          >
-            <Package className="w-4 h-4" /> Gestão de Produtos ({products.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`px-4 py-3 rounded-t flex items-center gap-2 transition-colors ${
-              activeTab === 'orders' ? 'bg-white border-t-2 border-[#C18282] text-[#1A1A1A] font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
-          >
-            <ShoppingBag className="w-4 h-4" /> Pedidos Clientes ({orders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('coupons')}
-            className={`px-4 py-3 rounded-t flex items-center gap-2 transition-colors ${
-              activeTab === 'coupons' ? 'bg-white border-t-2 border-[#C18282] text-[#1A1A1A] font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
-          >
-            <Tag className="w-4 h-4" /> Cupons de Desconto
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`px-4 py-3 rounded-t flex items-center gap-2 transition-colors ${
-              activeTab === 'settings' ? 'bg-white border-t-2 border-[#C18282] text-[#1A1A1A] font-bold shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
-          >
-            <Settings className="w-4 h-4" /> Configurações da Loja
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Tab 1: KPIs & Overview */}
-        {activeTab === 'kpis' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-white p-5 border border-neutral-200 rounded shadow-xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">Faturamento Total</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-neutral-900">R$ {totalRevenue.toFixed(2).replace('.', ',')}</span>
-                  <DollarSign className="w-6 h-6 text-emerald-600" />
+        {/* Menu */}
+        <nav className="flex-1 py-4 overflow-y-auto">
+          <div className="px-3 mb-2">
+            {sidebarOpen && (
+              <span className="text-[10px] uppercase tracking-widest text-white/30 font-semibold px-3">
+                Menu Principal
+              </span>
+            )}
+          </div>
+
+          {menuItems.map((item) => (
+            <Link
+              key={item.id}
+              to={`/admin/${item.id}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                currentPage === item.id
+                  ? 'bg-[#C18282] text-white'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+              title={!sidebarOpen ? item.label : undefined}
+            >
+              <span className="flex-shrink-0">{item.icon}</span>
+              {sidebarOpen && (
+                <>
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
+            </Link>
+          ))}
+
+          <div className="px-3 mt-6 mb-2">
+            {sidebarOpen && (
+              <span className="text-[10px] uppercase tracking-widest text-white/30 font-semibold px-3">
+                Sistema
+              </span>
+            )}
+          </div>
+
+          <Link
+            to="/"
+            className="w-full flex items-center gap-3 px-4 py-3 text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+            title="Ver Loja"
+          >
+            <Store className="w-5 h-5" />
+            {sidebarOpen && <span className="text-sm">Ver Loja</span>}
+          </Link>
+        </nav>
+
+        {/* User */}
+        {sidebarOpen && (
+          <div className="p-4 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#C18282]/20 rounded-full flex items-center justify-center">
+                <span className="text-[#C18282] font-bold text-sm">
+                  {profile?.fullName?.charAt(0) || 'A'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate">{profile?.fullName || 'Admin'}</p>
+                <p className="text-white/40 text-[11px] truncate">{profile?.role || 'admin'}</p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="text-white/40 hover:text-red-400 transition-colors"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </aside>
+
+      {/* Main Content */}
+      <div className={`flex-1 ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-neutral-800">
+              {menuItems.find(m => m.id === currentPage)?.label || 'Dashboard'}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="pl-10 pr-4 py-2 bg-neutral-100 border border-transparent rounded-lg text-sm focus:outline-none focus:border-[#C18282] focus:bg-white transition-colors w-64"
+              />
+            </div>
+
+            <button className="relative p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors">
+              <Bell className="w-5 h-5" />
+              {pendingOrders > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {pendingOrders}
+                </span>
+              )}
+            </button>
+
+            <div className="h-8 w-px bg-neutral-200" />
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#C18282]/20 rounded-full flex items-center justify-center">
+                <span className="text-[#C18282] font-bold text-xs">
+                  {profile?.fullName?.charAt(0) || 'A'}
+                </span>
+              </div>
+              <span className="text-sm font-medium text-neutral-700 hidden sm:block">
+                {profile?.fullName || 'Admin'}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-6">
+          {!['dashboard', 'products', 'orders', 'coupons', 'banners', 'blog', 'settings'].includes(currentPage) && (
+            <div className="text-center py-20">
+              <p className="text-neutral-500 text-sm">Página não encontrada.</p>
+              <Link to="/admin/dashboard" className="text-[#C18282] text-sm font-semibold underline mt-2 inline-block">
+                Ir para o Dashboard
+              </Link>
+            </div>
+          )}
+
+          {/* Dashboard */}
+          {currentPage === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full -mr-8 -mt-8" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Faturamento</p>
+                    <p className="text-2xl font-bold text-neutral-900 mt-1">R$ {totalRevenue.toFixed(2).replace('.', ',')}</p>
+                    <div className="flex items-center gap-1 mt-2 text-xs text-blue-600 font-medium">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+12% este mês</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -mr-8 -mt-8" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Pedidos</p>
+                    <p className="text-2xl font-bold text-neutral-900 mt-1">{paidOrdersCount}</p>
+                    <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600 font-medium">
+                      <ShoppingBag className="w-3 h-3" />
+                      <span>{pendingOrders} pendentes</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-8 -mt-8" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Ticket Médio</p>
+                    <p className="text-2xl font-bold text-neutral-900 mt-1">R$ {avgTicket.toFixed(2).replace('.', ',')}</p>
+                    <div className="flex items-center gap-1 mt-2 text-xs text-amber-600 font-medium">
+                      <BarChart3 className="w-3 h-3" />
+                      <span>por pedido</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full -mr-8 -mt-8" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Produtos</p>
+                    <p className="text-2xl font-bold text-neutral-900 mt-1">{products.length}</p>
+                    <div className="flex items-center gap-1 mt-2 text-xs text-purple-600 font-medium">
+                      <Package className="w-3 h-3" />
+                      <span>{products.filter(p => p.status === 'active').length} ativos</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white p-5 border border-neutral-200 rounded shadow-xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">Total de Pedidos</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-neutral-900">{paidOrdersCount}</span>
-                  <ShoppingBag className="w-6 h-6 text-blue-600" />
+              {/* Recent Orders */}
+              <div className="bg-white rounded-xl shadow-sm border border-neutral-100">
+                <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+                  <h3 className="font-semibold text-neutral-800">Últimos Pedidos</h3>
+                  <Link
+                    to="/admin/orders"
+                    className="text-xs text-[#C18282] hover:underline font-medium"
+                  >
+                    Ver todos
+                  </Link>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
+                      <tr>
+                        <th className="px-6 py-3 text-left font-semibold">Pedido</th>
+                        <th className="px-6 py-3 text-left font-semibold">Cliente</th>
+                        <th className="px-6 py-3 text-left font-semibold">Total</th>
+                        <th className="px-6 py-3 text-left font-semibold">Status</th>
+                        <th className="px-6 py-3 text-left font-semibold">Data</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                      {orders.slice(0, 5).map(o => (
+                        <tr key={o.id} className="hover:bg-neutral-50 transition-colors">
+                          <td className="px-6 py-4 font-semibold text-neutral-900">{o.orderNumber}</td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-medium text-neutral-900">{o.customer.name}</p>
+                              <p className="text-xs text-neutral-500">{o.customer.email}</p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 font-bold text-neutral-900">R$ {o.total.toFixed(2).replace('.', ',')}</td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${
+                              o.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                              o.status === 'Pago' ? 'bg-blue-100 text-blue-700' :
+                              o.status === 'Enviado' ? 'bg-purple-100 text-purple-700' :
+                              o.status === 'Cancelado' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-neutral-500 text-xs">
+                            {new Date(o.createdAt).toLocaleDateString('pt-BR')}
+                          </td>
+                        </tr>
+                      ))}
+                      {orders.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-neutral-400">
+                            Nenhum pedido registrado
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              <div className="bg-white p-5 border border-neutral-200 rounded shadow-xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">Ticket Médio</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-neutral-900">R$ {avgTicket.toFixed(2).replace('.', ',')}</span>
-                  <TrendingUp className="w-6 h-6 text-[#C18282]" />
+              {/* Top Products */}
+              <div className="bg-white rounded-xl shadow-sm border border-neutral-100">
+                <div className="px-6 py-4 border-b border-neutral-100">
+                  <h3 className="font-semibold text-neutral-800">Produtos Mais Vendidos</h3>
                 </div>
-              </div>
-
-              <div className="bg-white p-5 border border-neutral-200 rounded shadow-xs space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">Produtos Ativos</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-neutral-900">{products.length}</span>
-                  <Package className="w-6 h-6 text-amber-600" />
+                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {products.filter(p => p.isBestSeller || p.isFeatured).slice(0, 4).map(p => (
+                    <div key={p.id} className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                      <img src={p.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-900 truncate">{p.name}</p>
+                        <p className="text-xs text-neutral-500">R$ {p.price.toFixed(2).replace('.', ',')}</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-amber-600">
+                        <Star className="w-3 h-3 fill-current" />
+                        <span>{p.rating}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Recent Orders table */}
-            <div className="bg-white border border-neutral-200 rounded shadow-xs p-6 space-y-4">
-              <h3 className="font-serif italic text-xl">Últimos Pedidos Recebidos</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-neutral-100 uppercase text-neutral-500 border-b border-neutral-200 font-bold">
+          {/* Products */}
+          {currentPage === 'products' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-neutral-500">{products.length} produtos cadastrados</p>
+                <button
+                  onClick={() => {
+                    setEditingProduct({
+                      name: '',
+                      price: 99.9,
+                      promotionalPrice: 79.9,
+                      categoryId: categories[0]?.id,
+                      isNew: true,
+                      isFeatured: true,
+                      images: [],
+                    });
+                    setIsProductModalOpen(true);
+                  }}
+                  className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Novo Produto
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="p-3">Pedido</th>
-                      <th className="p-3">Cliente</th>
-                      <th className="p-3">Pagamento</th>
-                      <th className="p-3">Total</th>
-                      <th className="p-3">Status</th>
+                      <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                      <th className="px-6 py-3 text-left font-semibold">Categoria</th>
+                      <th className="px-6 py-3 text-left font-semibold">Preço</th>
+                      <th className="px-6 py-3 text-left font-semibold">Estoque</th>
+                      <th className="px-6 py-3 text-left font-semibold">Status</th>
+                      <th className="px-6 py-3 text-right font-semibold">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100">
-                    {orders.slice(0, 5).map(o => (
-                      <tr key={o.id} className="hover:bg-neutral-50">
-                        <td className="p-3 font-bold text-[#1A1A1A]">{o.orderNumber}</td>
-                        <td className="p-3 font-medium">{o.customer.name}</td>
-                        <td className="p-3 uppercase text-neutral-500">{o.paymentMethod}</td>
-                        <td className="p-3 font-bold">R$ {o.total.toFixed(2).replace('.', ',')}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">
-                            {o.status}
+                    {products.map(p => (
+                      <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img src={p.images[0]} alt="" className="w-10 h-12 rounded object-cover" />
+                            <div>
+                              <p className="font-medium text-neutral-900">{p.name}</p>
+                              <p className="text-xs text-neutral-500">{p.sku}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-neutral-600">{p.categoryName}</td>
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-neutral-900">R$ {p.price.toFixed(2).replace('.', ',')}</span>
+                          {p.promotionalPrice && p.promotionalPrice < p.price && (
+                            <span className="block text-xs text-emerald-600">Oferta: R$ {p.promotionalPrice.toFixed(2).replace('.', ',')}</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`font-medium ${p.stock <= p.minStock ? 'text-red-600' : 'text-neutral-900'}`}>
+                            {p.stock} un.
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                            p.status === 'draft' ? 'bg-amber-100 text-amber-700' :
+                            'bg-neutral-100 text-neutral-500'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingProduct(p);
+                                setIsProductModalOpen(true);
+                              }}
+                              className="p-2 text-neutral-500 hover:text-[#C18282] hover:bg-[#C18282]/10 rounded-lg transition-colors"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteProduct(p.id)}
+                              className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -219,187 +502,323 @@ export const AdminPanel: React.FC = () => {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tab 2: Products Manager */}
-        {activeTab === 'products' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-4 rounded border border-neutral-200">
-              <h3 className="font-serif italic text-xl">Catálogo de Produtos ({products.length})</h3>
+          {/* Orders */}
+          {currentPage === 'orders' && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+                <div className="px-6 py-4 border-b border-neutral-100">
+                  <h3 className="font-semibold text-neutral-800">Gestão de Pedidos</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
+                      <tr>
+                        <th className="px-6 py-3 text-left font-semibold">Pedido</th>
+                        <th className="px-6 py-3 text-left font-semibold">Cliente</th>
+                        <th className="px-6 py-3 text-left font-semibold">Pagamento</th>
+                        <th className="px-6 py-3 text-left font-semibold">Total</th>
+                        <th className="px-6 py-3 text-left font-semibold">Status</th>
+                        <th className="px-6 py-3 text-left font-semibold">Data</th>
+                        <th className="px-6 py-3 text-right font-semibold">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                      {orders.map(o => (
+                        <tr key={o.id} className="hover:bg-neutral-50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-neutral-900">{o.orderNumber}</td>
+                          <td className="px-6 py-4">
+                            <p className="font-medium text-neutral-900">{o.customer.name}</p>
+                            <p className="text-xs text-neutral-500">{o.customer.email}</p>
+                          </td>
+                          <td className="px-6 py-4 uppercase text-neutral-600 text-xs font-medium">{o.paymentMethod}</td>
+                          <td className="px-6 py-4 font-bold text-neutral-900">R$ {o.total.toFixed(2).replace('.', ',')}</td>
+                          <td className="px-6 py-4">
+                            <select
+                              value={o.status}
+                              onChange={e => updateOrderStatus(o.id, e.target.value as any)}
+                              className={`px-2 py-1 border-0 rounded text-[11px] font-bold uppercase cursor-pointer ${
+                                o.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                                o.status === 'Pago' ? 'bg-blue-100 text-blue-700' :
+                                o.status === 'Enviado' ? 'bg-purple-100 text-purple-700' :
+                                o.status === 'Cancelado' ? 'bg-red-100 text-red-700' :
+                                'bg-amber-100 text-amber-700'
+                              }`}
+                            >
+                              <option value="Pendente">Pendente</option>
+                              <option value="Pago">Pago</option>
+                              <option value="Em Separação">Em Separação</option>
+                              <option value="Enviado">Enviado</option>
+                              <option value="Entregue">Entregue</option>
+                              <option value="Cancelado">Cancelado</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4 text-neutral-500 text-xs">
+                            {new Date(o.createdAt).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button className="p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {orders.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-12 text-center text-neutral-400">
+                            Nenhum pedido registrado
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Coupons */}
+          {currentPage === 'coupons' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-neutral-500">{coupons.length} cupons cadastrados</p>
+                <button
+                  onClick={() => {
+                    addCoupon({
+                      code: 'NOVO_CUPOM',
+                      type: 'percentage',
+                      value: 10,
+                      minOrderValue: 100,
+                      maxUsage: 100,
+                      expiresAt: '2026-12-31',
+                      active: true,
+                    });
+                  }}
+                  className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Novo Cupom
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {coupons.map(c => (
+                  <div key={c.id} className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <span className="text-lg font-bold text-[#1a1d21] uppercase tracking-wider">{c.code}</span>
+                        <p className="text-sm text-neutral-500 mt-1">
+                          {c.type === 'percentage' ? `${c.value}% OFF` :
+                           c.type === 'free_shipping' ? 'Frete Grátis' :
+                           `R$ ${c.value} OFF`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => toggleCouponStatus(c.id)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase ${
+                          c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'
+                        }`}
+                      >
+                        {c.active ? 'Ativo' : 'Inativo'}
+                      </button>
+                    </div>
+                    <div className="text-xs text-neutral-500 space-y-1 border-t border-neutral-100 pt-3">
+                      <p>Pedido mínimo: R$ {c.minOrderValue.toFixed(2).replace('.', ',')}</p>
+                      <p>Usos: {c.usedCount}/{c.maxUsage}</p>
+                      <p>Validade: {new Date(c.expiresAt).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Banners */}
+          {currentPage === 'banners' && (
+            <div className="space-y-4">
+              <p className="text-sm text-neutral-500">{banners.length} banners cadastrados</p>
+              <div className="grid grid-cols-1 gap-4">
+                {banners.map(b => (
+                  <div key={b.id} className="bg-white rounded-xl shadow-sm border border-neutral-100 p-4 flex gap-4">
+                    <img src={b.desktopImage} alt="" className="w-40 h-24 object-cover rounded-lg" />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-neutral-900">{b.title}</h4>
+                      <p className="text-sm text-neutral-500">{b.subtitle}</p>
+                      <div className="flex gap-2 mt-2">
+                        <span className="px-2 py-0.5 bg-neutral-100 rounded text-xs text-neutral-600">{b.position}</span>
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${b.active ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                          {b.active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Blog */}
+          {currentPage === 'blog' && (
+            <div className="space-y-4">
+              <p className="text-sm text-neutral-500">Gerencie o conteúdo do blog</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {['Como escolher o top fitness', 'Tecnologia Seamless'].map((title, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm border border-neutral-100 p-5">
+                    <h4 className="font-bold text-neutral-900">{title}</h4>
+                    <p className="text-sm text-neutral-500 mt-1">Postado em {new Date().toLocaleDateString('pt-BR')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Settings */}
+          {currentPage === 'settings' && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
+                <h3 className="font-semibold text-neutral-800 mb-4">Configurações da Loja</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome da Loja</label>
+                    <input
+                      type="text"
+                      value={settings.storeName}
+                      onChange={e => updateSettings({ storeName: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={settings.email}
+                      onChange={e => updateSettings({ email: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Telefone</label>
+                    <input
+                      type="text"
+                      value={settings.phone}
+                      onChange={e => updateSettings({ phone: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">WhatsApp</label>
+                    <input
+                      type="text"
+                      value={settings.whatsapp}
+                      onChange={e => updateSettings({ whatsapp: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Slogan</label>
+                    <input
+                      type="text"
+                      value={settings.slogan}
+                      onChange={e => updateSettings({ slogan: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Endereço</label>
+                    <input
+                      type="text"
+                      value={settings.address}
+                      onChange={e => updateSettings({ address: e.target.value })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Frete Grátis Acima de (R$)</label>
+                    <input
+                      type="number"
+                      value={settings.freeShippingThreshold}
+                      onChange={e => updateSettings({ freeShippingThreshold: Number(e.target.value) })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => {}}
+                  className="mt-6 bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors"
+                >
+                  Salvar Alterações
+                </button>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Product Modal */}
+      {isProductModalOpen && editingProduct && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                {editingProduct.id ? 'Editar Produto' : 'Novo Produto'}
+              </h3>
               <button
-                onClick={() => {
-                  setEditingProduct({
-                    name: '',
-                    price: 99.9,
-                    promotionalPrice: 79.9,
-                    categoryId: categories[0]?.id || 'cat-1',
-                    isNew: true,
-                    isFeatured: true,
-                    images: ['https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800'],
-                  });
-                  setIsProductModalOpen(true);
-                }}
-                className="bg-[#1A1A1A] hover:bg-[#C18282] text-white text-xs uppercase font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-1.5"
+                onClick={() => { setIsProductModalOpen(false); setEditingProduct(null); }}
+                className="p-1 text-neutral-400 hover:text-neutral-600"
               >
-                <Plus className="w-4 h-4" /> Novo Produto
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {products.map(prod => (
-                <div key={prod.id} className="bg-white p-4 border border-neutral-200 rounded flex gap-4 items-center">
-                  <img src={prod.images[0]} alt="" className="w-20 h-24 object-cover rounded bg-neutral-100" />
-                  <div className="flex-1 space-y-1 text-xs">
-                    <span className="text-[10px] text-neutral-400 uppercase font-semibold">{prod.categoryName}</span>
-                    <h4 className="font-bold text-neutral-900 line-clamp-1">{prod.name}</h4>
-                    <div className="font-semibold text-neutral-800">
-                      R$ {prod.price.toFixed(2).replace('.', ',')}
-                    </div>
+            <form onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <ImageGallery
+                images={editingProduct.images || []}
+                onChange={(newImages) => setEditingProduct({ ...editingProduct, images: newImages })}
+                bucket="product-images"
+                maxImages={10}
+              />
 
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        onClick={() => {
-                          setEditingProduct(prod);
-                          setIsProductModalOpen(true);
-                        }}
-                        className="p-1.5 bg-neutral-100 hover:bg-[#C18282] hover:text-white rounded text-neutral-700 transition-colors"
-                        title="Editar"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => deleteProduct(prod.id)}
-                        className="p-1.5 bg-neutral-100 hover:bg-red-600 hover:text-white rounded text-neutral-700 transition-colors"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Orders Manager */}
-        {activeTab === 'orders' && (
-          <div className="bg-white border border-neutral-200 rounded p-6 space-y-4">
-            <h3 className="font-serif italic text-xl">Gestão de Pedidos ({orders.length})</h3>
-
-            <div className="space-y-4">
-              {orders.map(order => (
-                <div key={order.id} className="p-4 border border-neutral-200 rounded space-y-3">
-                  <div className="flex flex-wrap justify-between items-center text-xs">
-                    <div>
-                      <span className="font-bold text-neutral-900 text-sm">{order.orderNumber}</span> • {order.customer.name} ({order.customer.email})
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-neutral-900">R$ {order.total.toFixed(2).replace('.', ',')}</span>
-                      <select
-                        value={order.status}
-                        onChange={e => updateOrderStatus(order.id, e.target.value as any)}
-                        className="p-1.5 border border-neutral-300 rounded font-bold uppercase text-[11px] bg-neutral-50"
-                      >
-                        <option value="Pendente">Pendente</option>
-                        <option value="Pago">Pago</option>
-                        <option value="Em Separação">Em Separação</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Entregue">Entregue</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-neutral-600 font-light border-t border-neutral-100 pt-2">
-                    Endereço: {order.shippingAddress.street}, {order.shippingAddress.number} - {order.shippingAddress.city}/{order.shippingAddress.state} (CEP {order.shippingAddress.zipCode})
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Coupons Manager */}
-        {activeTab === 'coupons' && (
-          <div className="bg-white border border-neutral-200 rounded p-6 space-y-4">
-            <h3 className="font-serif italic text-xl">Cupons de Desconto</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {coupons.map(c => (
-                <div key={c.id} className="p-4 border border-neutral-200 rounded flex justify-between items-center">
-                  <div>
-                    <span className="font-bold text-sm text-[#1A1A1A] uppercase tracking-wider">{c.code}</span>
-                    <p className="text-xs text-neutral-500 font-light">
-                      {c.type === 'percentage' ? `${c.value}% OFF` : `R$ ${c.value} OFF`}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => toggleCouponStatus(c.id)}
-                    className={`px-3 py-1 text-xs font-bold uppercase rounded ${
-                      c.active ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-200 text-neutral-600'
-                    }`}
-                  >
-                    {c.active ? 'Ativo' : 'Inativo'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* Product Edit/Create Modal */}
-      {isProductModalOpen && editingProduct && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg p-6 rounded shadow-xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
-            <h3 className="font-serif italic text-xl font-normal text-[#1A1A1A]">
-              {editingProduct.id ? 'Editar Produto' : 'Cadastrar Novo Produto'}
-            </h3>
-
-            <form onSubmit={handleSaveProduct} className="space-y-3">
               <div>
-                <label className="block font-semibold mb-1">Nome do Produto</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome do Produto</label>
                 <input
                   type="text"
                   required
                   value={editingProduct.name || ''}
                   onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                  className="w-full p-2 border border-neutral-300 rounded"
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold mb-1">Preço Normal (R$)</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Preço (R$)</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={editingProduct.price || 0}
                     onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                    className="w-full p-2 border border-neutral-300 rounded"
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
                   />
                 </div>
-
                 <div>
-                  <label className="block font-semibold mb-1">Preço Oferta (R$)</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Preço Oferta (R$)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={editingProduct.promotionalPrice || 0}
                     onChange={e => setEditingProduct({ ...editingProduct, promotionalPrice: Number(e.target.value) })}
-                    className="w-full p-2 border border-neutral-300 rounded"
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">Categoria</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Categoria</label>
                 <select
                   value={editingProduct.categoryId}
                   onChange={e => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
-                  className="w-full p-2 border border-neutral-300 rounded bg-white"
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm bg-white"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -407,27 +826,17 @@ export const AdminPanel: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block font-semibold mb-1">URL da Imagem Principal</label>
-                <input
-                  type="text"
-                  value={editingProduct.images?.[0] || ''}
-                  onChange={e => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
-                  className="w-full p-2 border border-neutral-300 rounded"
-                />
-              </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsProductModalOpen(false)}
-                  className="flex-1 border border-neutral-300 py-2.5 rounded uppercase font-semibold text-neutral-700"
+                  onClick={() => { setIsProductModalOpen(false); setEditingProduct(null); }}
+                  className="flex-1 border border-neutral-300 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#1A1A1A] hover:bg-[#C18282] text-white py-2.5 rounded uppercase font-bold"
+                  className="flex-1 bg-[#C18282] hover:bg-[#a86a6a] text-white py-2.5 rounded-lg text-sm font-medium"
                 >
                   Salvar
                 </button>
@@ -436,7 +845,6 @@ export const AdminPanel: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

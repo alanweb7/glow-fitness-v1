@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Filter, SlidersHorizontal, ArrowUpDown, Search, Heart, Eye } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const CatalogView: React.FC = () => {
+  const { categoryId } = useParams<{ categoryId: string }>();
+  const navigate = useNavigate();
+
   const {
     products,
     categories,
-    selectedCategoryId,
-    setSelectedCategoryId,
-    setSelectedProductId,
     addToCart,
     wishlist,
     toggleWishlist,
@@ -20,7 +21,7 @@ export const CatalogView: React.FC = () => {
 
   // Filter products
   let filtered = products.filter(p => {
-    if (selectedCategoryId && p.categoryId !== selectedCategoryId && p.slug !== selectedCategoryId) {
+    if (categoryId && p.categoryId !== categoryId && p.slug !== categoryId) {
       return false;
     }
     if (searchFilter.trim()) {
@@ -46,7 +47,7 @@ export const CatalogView: React.FC = () => {
     filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
   }
 
-  const currentCategory = categories.find(c => c.id === selectedCategoryId || c.slug === selectedCategoryId);
+  const currentCategory = categories.find(c => c.id === categoryId || c.slug === categoryId);
 
   return (
     <div className="py-12 bg-[#FAF7F6] min-h-screen font-sans">
@@ -71,9 +72,9 @@ export const CatalogView: React.FC = () => {
           {/* Category Chips */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
             <button
-              onClick={() => setSelectedCategoryId(null)}
+              onClick={() => navigate('/catalog')}
               className={`px-3 py-1.5 rounded-full uppercase font-medium tracking-wider text-[11px] whitespace-nowrap transition-colors ${
-                !selectedCategoryId ? 'bg-[#1A1A1A] text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                !categoryId ? 'bg-[#1A1A1A] text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
               Todos
@@ -81,9 +82,9 @@ export const CatalogView: React.FC = () => {
             {categories.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategoryId(cat.id)}
+                onClick={() => navigate(`/catalog/${cat.id}`)}
                 className={`px-3 py-1.5 rounded-full uppercase font-medium tracking-wider text-[11px] whitespace-nowrap transition-colors ${
-                  selectedCategoryId === cat.id || selectedCategoryId === cat.slug
+                  categoryId === cat.id || categoryId === cat.slug
                     ? 'bg-[#1A1A1A] text-white'
                     : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                 }`}
@@ -129,7 +130,7 @@ export const CatalogView: React.FC = () => {
             <div className="col-span-full text-center py-20 space-y-3 bg-white border border-neutral-200 rounded">
               <p className="text-neutral-500 text-sm font-light">Nenhum produto encontrado com estes filtros.</p>
               <button
-                onClick={() => { setSelectedCategoryId(null); setSearchFilter(''); }}
+                onClick={() => { navigate('/catalog'); setSearchFilter(''); }}
                 className="text-xs text-[#C18282] font-semibold underline"
               >
                 Limpar todos os filtros
@@ -143,7 +144,7 @@ export const CatalogView: React.FC = () => {
               >
                 {/* Product Image */}
                 <div
-                  onClick={() => setSelectedProductId(prod.id)}
+                  onClick={() => navigate(`/product/${prod.id}`)}
                   className="relative aspect-[3/4] bg-neutral-100 overflow-hidden cursor-pointer"
                 >
                   <img
@@ -170,7 +171,7 @@ export const CatalogView: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedProductId(prod.id);
+                        navigate(`/product/${prod.id}`);
                       }}
                       className="p-2 bg-white text-neutral-700 hover:text-[#C18282] rounded-full shadow-md transition-colors"
                     >
@@ -186,7 +187,7 @@ export const CatalogView: React.FC = () => {
                       {prod.categoryName}
                     </span>
                     <h3
-                      onClick={() => setSelectedProductId(prod.id)}
+                      onClick={() => navigate(`/product/${prod.id}`)}
                       className="font-medium text-sm text-[#1A1A1A] hover:text-[#C18282] cursor-pointer transition-colors"
                     >
                       {prod.name}
@@ -212,7 +213,7 @@ export const CatalogView: React.FC = () => {
                   <button
                     onClick={() => {
                       if (prod.variations && prod.variations.length > 0) {
-                        setSelectedProductId(prod.id);
+                        navigate(`/product/${prod.id}`);
                       } else {
                         addToCart(prod);
                       }

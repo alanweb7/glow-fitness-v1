@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Package, Truck, CheckCircle, Clock, ArrowLeft, Copy, QrCode } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const OrdersView: React.FC = () => {
-  const { orders, setCurrentView } = useStore();
+  const { orders } = useStore();
+  const navigate = useNavigate();
 
   return (
     <div className="py-12 bg-[#FAF7F6] min-h-screen font-sans">
@@ -18,7 +20,7 @@ export const OrdersView: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setCurrentView('store')}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 text-xs uppercase font-semibold text-neutral-600 hover:text-[#C18282] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Voltar à Loja
@@ -30,7 +32,7 @@ export const OrdersView: React.FC = () => {
             <Package className="w-12 h-12 text-neutral-300 mx-auto" />
             <p className="text-sm text-neutral-500 font-light">Você ainda não realizou nenhum pedido em nossa loja.</p>
             <button
-              onClick={() => setCurrentView('catalog')}
+              onClick={() => navigate('/catalog')}
               className="bg-[#C18282] text-white text-xs uppercase font-semibold px-6 py-3 rounded"
             >
               FAZER PRIMEIRA COMPRA
