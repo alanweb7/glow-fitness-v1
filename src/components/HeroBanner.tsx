@@ -1,18 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
+
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
 
 export const HeroBanner: React.FC = () => {
   const { banners } = useStore();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const heroBanner = banners.find(b => b.position === 'hero' && b.active) || banners[0];
+
+  const backgroundImage = isMobile
+    ? (heroBanner?.mobileImage || heroBanner?.desktopImage || 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1600&auto=format&fit=crop&q=80')
+    : (heroBanner?.desktopImage || 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1600&auto=format&fit=crop&q=80');
 
   return (
     <div className="relative bg-[#1A1A1A] text-white overflow-hidden min-h-[500px] sm:min-h-[600px] flex items-center">
       {/* Background Image with Dark Overlay */}
       <div className="absolute inset-0">
         <img
-          src={heroBanner?.desktopImage || 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1600&auto=format&fit=crop&q=80'}
+          src={backgroundImage}
           alt="Glow Fitness Collection"
           className="w-full h-full object-cover object-center opacity-85"
         />
