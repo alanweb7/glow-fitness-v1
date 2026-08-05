@@ -857,6 +857,18 @@ export const AdminPanel: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
                 <h3 className="font-semibold text-neutral-800 mb-4">Configurações da Loja</h3>
+                
+                {/* Logo Upload */}
+                <div className="mb-6 pb-6 border-b border-neutral-200">
+                  <ImageUpload
+                    label="Logo da Loja"
+                    value={settings.logoUrl || ''}
+                    onChange={url => updateSettings({ logoUrl: url })}
+                    bucket="general"
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-1">Recomendado: PNG transparente, 300x100px</p>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome da Loja</label>

@@ -14,8 +14,14 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="space-y-4">
             <Link to="/" className="inline-block">
-              <span className="font-serif italic text-3xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
-              <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-400 ml-1">FITNESS</span>
+              {settings.logoUrl ? (
+                <img src={settings.logoUrl} alt={settings.storeName || 'Glow Fitness'} className="h-10 object-contain" />
+              ) : (
+                <>
+                  <span className="font-serif italic text-3xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
+                  <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-400 ml-1">FITNESS</span>
+                </>
+              )}
             </Link>
 
             <p className="text-xs text-neutral-400 leading-relaxed max-w-xs font-light">

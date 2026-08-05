@@ -9,6 +9,7 @@ export const Header: React.FC = () => {
     setIsCartOpen,
     setIsQuickSearchOpen,
     setIsAiStylistOpen,
+    settings,
   } = useStore();
 
   const navigate = useNavigate();
@@ -32,10 +33,14 @@ export const Header: React.FC = () => {
 
           {/* Logo */}
           <Link to="/" className="flex flex-col items-center sm:items-start select-none">
-            <div className="flex items-baseline">
-              <span className="font-serif italic text-3xl sm:text-4xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
-              <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-300 ml-1">FITNESS</span>
-            </div>
+            {settings.logoUrl ? (
+              <img src={settings.logoUrl} alt={settings.storeName || 'Glow Fitness'} className="h-10 sm:h-12 object-contain" />
+            ) : (
+              <div className="flex items-baseline">
+                <span className="font-serif italic text-3xl sm:text-4xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
+                <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-300 ml-1">FITNESS</span>
+              </div>
+            )}
           </Link>
 
           {/* Navigation Links - Desktop */}
