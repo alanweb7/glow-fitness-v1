@@ -60,10 +60,19 @@ export const Footer: React.FC = () => {
                 <Link to="/about" className="hover:text-[#C18282] transition-colors">Sobre Nós</Link>
               </li>
               <li>
-                <Link to="/blog" className="hover:text-[#C18282] transition-colors">Contato & Blog</Link>
+                <Link to="/contato" className="hover:text-[#C18282] transition-colors">Contato</Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-[#C18282] transition-colors">Política de Trocas e Devoluções</Link>
+                <Link to="/trocas" className="hover:text-[#C18282] transition-colors">Política de Trocas e Devoluções</Link>
+              </li>
+              <li>
+                <Link to="/frete" className="hover:text-[#C18282] transition-colors">Frete e Entrega</Link>
+              </li>
+              <li>
+                <Link to="/privacidade" className="hover:text-[#C18282] transition-colors">Política de Privacidade</Link>
+              </li>
+              <li>
+                <Link to="/termos" className="hover:text-[#C18282] transition-colors">Termos de Uso</Link>
               </li>
             </ul>
           </div>

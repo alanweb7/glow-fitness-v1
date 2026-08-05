@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Page, PageContent } from '../types';
+import { PageContent } from '../types';
 
 const DEFAULT_CONTENT: PageContent = {
   heroTitle: 'QUEM SOMOS?',
@@ -22,12 +22,13 @@ const DEFAULT_CONTENT: PageContent = {
 export const AboutSection: React.FC = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState<PageContent>(DEFAULT_CONTENT);
+  const [featuredImage, setFeaturedImage] = useState<string>('');
 
   useEffect(() => {
     const loadAbout = async () => {
       const { data } = await supabase
         .from('pages')
-        .select('content')
+        .select('content, featured_image')
         .eq('slug', 'sobre')
         .eq('is_published', true)
         .single();
@@ -35,11 +36,15 @@ export const AboutSection: React.FC = () => {
       if (data?.content) {
         setContent(data.content);
       }
+      if (data?.featured_image) {
+        setFeaturedImage(data.featured_image);
+      }
     };
     loadAbout();
   }, []);
 
   const sections = content.sections || [];
+  const imageUrl = featuredImage || content.heroImage || DEFAULT_CONTENT.heroImage!;
 
   return (
     <section className="py-16 sm:py-24 bg-[#E2B3B1]/30 border-t border-b border-[#1A1A1A]/10">
@@ -50,7 +55,7 @@ export const AboutSection: React.FC = () => {
           <div className="lg:col-span-5">
             <div className="relative aspect-[4/5] max-w-md mx-auto overflow-hidden shadow-xl border border-[#1A1A1A]/10 bg-white">
               <img
-                src={content.heroImage || DEFAULT_CONTENT.heroImage!}
+                src={imageUrl}
                 alt="Glow Fitness - Quem Somos"
                 className="w-full h-full object-cover object-top"
               />

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Heart, Sparkles, Award, Loader2 } from 'lucide-react';
+import { ShieldCheck, Heart, Award, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Page, PageContent } from '../types';
+import { PageContent } from '../types';
 
 const DEFAULT_CONTENT: PageContent = {
   heroTitle: 'Sobre a Glow Fitness',
@@ -33,19 +33,23 @@ const PILLARS = [
 export const AboutView: React.FC = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState<PageContent>(DEFAULT_CONTENT);
+  const [featuredImage, setFeaturedImage] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadAbout = async () => {
       const { data } = await supabase
         .from('pages')
-        .select('content')
+        .select('content, featured_image')
         .eq('slug', 'sobre')
         .eq('is_published', true)
         .single();
 
       if (data?.content) {
         setContent(data.content);
+      }
+      if (data?.featured_image) {
+        setFeaturedImage(data.featured_image);
       }
       setLoading(false);
     };
@@ -61,6 +65,7 @@ export const AboutView: React.FC = () => {
   }
 
   const sections = content.sections || [];
+  const imageUrl = featuredImage || content.heroImage || DEFAULT_CONTENT.heroImage!;
 
   return (
     <div className="py-16 bg-[#FAF7F6] min-h-screen font-sans">
@@ -93,7 +98,7 @@ export const AboutView: React.FC = () => {
 
           <div className="aspect-[4/5] rounded overflow-hidden shadow-md">
             <img
-              src={content.heroImage || DEFAULT_CONTENT.heroImage!}
+              src={imageUrl}
               alt="Sobre Glow Fitness"
               className="w-full h-full object-cover"
             />
