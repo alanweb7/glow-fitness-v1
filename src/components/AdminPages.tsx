@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Edit, Trash2, Loader2, X, Check, Eye, EyeOff, Search, Globe, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Page, PageContent, PageSection, PAGE_TEMPLATES, PageTemplate } from '../types';
+import { ImageUpload } from './ImageUpload';
 
 export const AdminPages: React.FC = () => {
   const [pages, setPages] = useState<Page[]>([]);
@@ -35,6 +36,7 @@ export const AdminPages: React.FC = () => {
       slug: p.slug,
       template: p.template,
       content: p.content || {},
+      featuredImage: p.featured_image,
       metaTitle: p.meta_title,
       metaDescription: p.meta_description,
       ogImage: p.og_image,
@@ -72,6 +74,7 @@ export const AdminPages: React.FC = () => {
       slug,
       template: editingPage.template || 'blank',
       content: editingPage.content || {},
+      featured_image: editingPage.featuredImage || '',
       meta_title: editingPage.metaTitle || editingPage.title,
       meta_description: editingPage.metaDescription || '',
       og_image: editingPage.ogImage || '',
@@ -277,9 +280,13 @@ export const AdminPages: React.FC = () => {
               <tr key={page.id} className="hover:bg-neutral-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#C18282]/10 rounded-lg flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-[#C18282]" />
-                    </div>
+                    {page.featuredImage ? (
+                      <img src={page.featuredImage} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 bg-[#C18282]/10 rounded-lg flex items-center justify-center">
+                        <FileText className="w-4 h-4 text-[#C18282]" />
+                      </div>
+                    )}
                     <div>
                       <p className="font-medium text-neutral-900">{page.title}</p>
                       <p className="text-xs text-neutral-500">Ordem: {page.order}</p>
@@ -416,6 +423,12 @@ export const AdminPages: React.FC = () => {
               {/* Hero Section */}
               <div className="border border-neutral-200 rounded-lg p-4 space-y-3">
                 <label className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Hero / Cabeçalho</label>
+                <ImageUpload
+                  label="Imagem Destacada"
+                  value={editingPage.featuredImage || ''}
+                  onChange={url => setEditingPage({ ...editingPage, featuredImage: url })}
+                  bucket="banner-images"
+                />
                 <input
                   type="text"
                   value={editingPage.content?.heroTitle || ''}

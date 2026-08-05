@@ -299,6 +299,7 @@ export interface Page {
   slug: string;
   template: PageTemplate;
   content: PageContent;
+  featuredImage?: string;
   metaTitle?: string;
   metaDescription?: string;
   ogImage?: string;
