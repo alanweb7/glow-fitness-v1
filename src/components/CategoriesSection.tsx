@@ -6,8 +6,8 @@ export const CategoriesSection: React.FC = () => {
   const { categories } = useStore();
   const navigate = useNavigate();
 
-  const handleCategoryClick = (slug: string) => {
-    navigate(`/catalog/${slug}`);
+  const handleCategoryClick = (id: string) => {
+    navigate(`/catalog/${id}`);
   };
 
   return (
@@ -24,7 +24,7 @@ export const CategoriesSection: React.FC = () => {
               return (
                 <div
                   key={cat.id}
-                  onClick={() => handleCategoryClick(cat.slug)}
+                  onClick={() => handleCategoryClick(cat.id)}
                   className="flex flex-col items-center group cursor-pointer flex-shrink-0"
                 >
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#E3B0AF]/40 group-hover:bg-[#C18282] transition-colors border border-[#C18282]/30 flex flex-col items-center justify-center p-2 shadow-sm text-center">
@@ -42,7 +42,7 @@ export const CategoriesSection: React.FC = () => {
             return (
               <div
                 key={cat.id}
-                onClick={() => handleCategoryClick(cat.slug)}
+                onClick={() => handleCategoryClick(cat.id)}
                 className="flex flex-col items-center group cursor-pointer flex-shrink-0"
               >
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-transparent group-hover:border-[#C18282] transition-all shadow-sm bg-neutral-100">

@@ -14,8 +14,14 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="space-y-4">
             <Link to="/" className="inline-block">
-              <span className="font-serif italic text-3xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
-              <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-400 ml-1">FITNESS</span>
+              {settings.logoUrl ? (
+                <img src={settings.logoUrl} alt={settings.storeName || 'Glow Fitness'} className="h-10 object-contain" />
+              ) : (
+                <>
+                  <span className="font-serif italic text-3xl text-[#EAD3D0] tracking-wide font-normal">Glow</span>
+                  <span className="text-xs uppercase tracking-[0.3em] font-sans font-light text-neutral-400 ml-1">FITNESS</span>
+                </>
+              )}
             </Link>
 
             <p className="text-xs text-neutral-400 leading-relaxed max-w-xs font-light">
@@ -54,10 +60,19 @@ export const Footer: React.FC = () => {
                 <Link to="/about" className="hover:text-[#C18282] transition-colors">Sobre Nós</Link>
               </li>
               <li>
-                <Link to="/blog" className="hover:text-[#C18282] transition-colors">Contato & Blog</Link>
+                <Link to="/contato" className="hover:text-[#C18282] transition-colors">Contato</Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-[#C18282] transition-colors">Política de Trocas e Devoluções</Link>
+                <Link to="/trocas" className="hover:text-[#C18282] transition-colors">Política de Trocas e Devoluções</Link>
+              </li>
+              <li>
+                <Link to="/frete" className="hover:text-[#C18282] transition-colors">Frete e Entrega</Link>
+              </li>
+              <li>
+                <Link to="/privacidade" className="hover:text-[#C18282] transition-colors">Política de Privacidade</Link>
+              </li>
+              <li>
+                <Link to="/termos" className="hover:text-[#C18282] transition-colors">Termos de Uso</Link>
               </li>
             </ul>
           </div>

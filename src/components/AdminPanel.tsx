@@ -38,8 +38,9 @@ import { ImageUpload } from './ImageUpload';
 import { AdminUsers } from './AdminUsers';
 import { AdminRoles } from './AdminRoles';
 import { AdminVariations } from './AdminVariations';
+import { AdminPages } from './AdminPages';
 
-type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'blog' | 'settings' | 'users' | 'roles';
+type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'pages' | 'blog' | 'settings' | 'users' | 'roles';
 
 const menuItems: { id: AdminPage; label: string; icon: React.ReactNode; badge?: number }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -47,6 +48,7 @@ const menuItems: { id: AdminPage; label: string; icon: React.ReactNode; badge?: 
   { id: 'orders', label: 'Pedidos', icon: <ShoppingBag className="w-5 h-5" /> },
   { id: 'coupons', label: 'Cupons', icon: <Tag className="w-5 h-5" /> },
   { id: 'banners', label: 'Banners', icon: <Image className="w-5 h-5" /> },
+  { id: 'pages', label: 'Páginas', icon: <FileText className="w-5 h-5" /> },
   { id: 'blog', label: 'Blog', icon: <FileText className="w-5 h-5" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-5 h-5" /> },
   { id: 'roles', label: 'Perfis de Acesso', icon: <Shield className="w-5 h-5" /> },
@@ -62,7 +64,7 @@ export const AdminPanel: React.FC = () => {
     banners,
     settings,
     updateProduct,
-    createProduct,
+    addProduct,
     deleteProduct,
     updateCategory,
     addCategory,
@@ -101,7 +103,7 @@ export const AdminPanel: React.FC = () => {
     if (editingProduct.id) {
       await updateProduct(editingProduct as Product);
     } else {
-      await createProduct({
+      await addProduct({
         name: editingProduct.name,
         slug: editingProduct.name.toLowerCase().replace(/\s+/g, '-'),
         price: Number(editingProduct.price),
@@ -279,7 +281,7 @@ export const AdminPanel: React.FC = () => {
 
         {/* Page Content */}
         <main className="p-6">
-          {!['dashboard', 'products', 'orders', 'coupons', 'banners', 'blog', 'settings', 'users', 'roles'].includes(currentPage) && (
+          {!['dashboard', 'products', 'orders', 'coupons', 'banners', 'pages', 'blog', 'settings', 'users', 'roles'].includes(currentPage) && (
             <div className="text-center py-20">
               <p className="text-neutral-500 text-sm">Página não encontrada.</p>
               <Link to="/admin/dashboard" className="text-[#C18282] text-sm font-semibold underline mt-2 inline-block">
@@ -545,7 +547,11 @@ export const AdminPanel: React.FC = () => {
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => deleteProduct(p.id)}
+                                  onClick={() => {
+  if (confirm(`Deseja mesmo excluir o produto "${p.name}"?`)) {
+    deleteProduct(p.id);
+  }
+}}
                                   className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -828,6 +834,9 @@ export const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {/* Pages */}
+          {currentPage === 'pages' && <AdminPages />}
+
           {/* Blog */}
           {currentPage === 'blog' && (
             <div className="space-y-4">
@@ -848,6 +857,18 @@ export const AdminPanel: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
                 <h3 className="font-semibold text-neutral-800 mb-4">Configurações da Loja</h3>
+                
+                {/* Logo Upload */}
+                <div className="mb-6 pb-6 border-b border-neutral-200">
+                  <ImageUpload
+                    label="Logo da Loja"
+                    value={settings.logoUrl || ''}
+                    onChange={url => updateSettings({ logoUrl: url })}
+                    bucket="general"
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-1">Recomendado: PNG transparente, 300x100px</p>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome da Loja</label>

@@ -20,6 +20,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { QuickSearchModal } from './components/QuickSearchModal';
 import { AiStylistModal } from './components/AiStylistModal';
 import { LoginView } from './components/LoginView';
+import { PageView } from './components/PageView';
 import { Loader2 } from 'lucide-react';
 
 // Store Layout (public pages)
@@ -39,6 +40,7 @@ const StoreLayout: React.FC = () => {
             <Route path="/about" element={<AboutView />} />
             <Route path="/blog" element={<BlogView />} />
             <Route path="/checkout" element={<CheckoutModal />} />
+            <Route path="/:slug" element={<PageView />} />
           </Routes>
         </main>
       </div>

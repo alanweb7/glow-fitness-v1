@@ -265,6 +265,64 @@ export interface UserRole {
 }
 
 // =============================================
+// PAGES & TEMPLATES
+// =============================================
+
+export type PageTemplate = 'blank' | 'about' | 'legal' | 'faq' | 'contact' | 'landing' | 'blog';
+
+export interface PageSection {
+  type?: string;
+  title?: string;
+  text?: string;
+  items?: string[];
+  fields?: string[];
+  whatsapp?: string;
+  email?: string;
+  instagram?: string;
+  horario?: string;
+  image?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+}
+
+export interface PageContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImage?: string;
+  sections?: PageSection[];
+  customHtml?: string;
+}
+
+export interface Page {
+  id: string;
+  title: string;
+  slug: string;
+  template: PageTemplate;
+  content: PageContent;
+  featuredImage?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  isPublished: boolean;
+  showInMenu: boolean;
+  showInFooter: boolean;
+  parentId?: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PAGE_TEMPLATES: Record<PageTemplate, { label: string; description: string; icon: string }> = {
+  blank: { label: 'Em Branco', description: 'Página personalizada do zero', icon: '📄' },
+  about: { label: 'Sobre Nós', description: 'Página institucional com missão, valores e equipe', icon: '🏢' },
+  legal: { label: 'Jurídico', description: 'Termos, política de privacidade,.cookies', icon: '⚖️' },
+  faq: { label: 'Perguntas Frequentes', description: 'FAQ e informações de entrega/troca', icon: '❓' },
+  contact: { label: 'Contato', description: 'Formulário e informações de contato', icon: '📞' },
+  landing: { label: 'Landing Page', description: 'Página de conversão com CTA', icon: '🚀' },
+  blog: { label: 'Blog', description: 'Artigo ou post do blog', icon: '📝' },
+};
+
+// =============================================
 // PRODUCT OPTIONS (VARIATIONS)
 // =============================================
 
