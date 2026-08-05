@@ -983,13 +983,10 @@ export const AdminPanel: React.FC = () => {
                 </select>
               </div>
 
-              {/* Variations Section */}
+              {/* Cores Disponíveis */}
               <div className="border border-neutral-200 rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-[#C18282]" />
-                    <label className="text-xs font-semibold text-neutral-700">Variações (Cor / Tamanho)</label>
-                  </div>
+                  <label className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Cores Disponíveis</label>
                   <button
                     type="button"
                     onClick={() => {
@@ -1012,19 +1009,16 @@ export const AdminPanel: React.FC = () => {
                     }}
                     className="text-xs text-[#C18282] hover:underline font-medium flex items-center gap-1"
                   >
-                    <Plus className="w-3 h-3" /> Adicionar
+                    <Plus className="w-3 h-3" /> Adicionar Cor
                   </button>
                 </div>
 
-                {(editingProduct.variations || []).length === 0 && (
-                  <p className="text-xs text-neutral-400 text-center py-3">
-                    Nenhuma variação. Clique em "Adicionar" para criar cores e tamanhos.
-                  </p>
-                )}
-
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="flex flex-wrap gap-2">
+                  {(editingProduct.variations || []).length === 0 && (
+                    <p className="text-xs text-neutral-400">Nenhuma cor adicionada</p>
+                  )}
                   {(editingProduct.variations || []).map((v, idx) => (
-                    <div key={v.id || idx} className="flex items-center gap-2 bg-neutral-50 rounded-lg p-2">
+                    <div key={v.id || idx} className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1.5 group">
                       <input
                         type="color"
                         value={v.colorHex || '#000000'}
@@ -1033,7 +1027,7 @@ export const AdminPanel: React.FC = () => {
                           variations[idx] = { ...variations[idx], colorHex: e.target.value };
                           setEditingProduct({ ...editingProduct, variations });
                         }}
-                        className="w-8 h-8 rounded border border-neutral-300 cursor-pointer"
+                        className="w-6 h-6 rounded border border-neutral-300 cursor-pointer"
                       />
                       <input
                         type="text"
@@ -1043,32 +1037,8 @@ export const AdminPanel: React.FC = () => {
                           variations[idx] = { ...variations[idx], colorName: e.target.value };
                           setEditingProduct({ ...editingProduct, variations });
                         }}
-                        placeholder="Cor"
-                        className="w-24 p-1.5 border border-neutral-300 rounded text-xs"
-                      />
-                      <select
-                        value={v.size || 'M'}
-                        onChange={e => {
-                          const variations = [...(editingProduct.variations || [])];
-                          variations[idx] = { ...variations[idx], size: e.target.value as any };
-                          setEditingProduct({ ...editingProduct, variations });
-                        }}
-                        className="w-16 p-1.5 border border-neutral-300 rounded text-xs bg-white"
-                      >
-                        {['PP', 'P', 'M', 'G', 'GG'].map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        value={v.stock || 0}
-                        onChange={e => {
-                          const variations = [...(editingProduct.variations || [])];
-                          variations[idx] = { ...variations[idx], stock: Number(e.target.value) };
-                          setEditingProduct({ ...editingProduct, variations });
-                        }}
-                        placeholder="Estoque"
-                        className="w-16 p-1.5 border border-neutral-300 rounded text-xs"
+                        placeholder="Nome"
+                        className="w-20 p-1 border border-transparent rounded text-xs focus:border-neutral-300 focus:outline-none"
                       />
                       <button
                         type="button"
@@ -1076,13 +1046,137 @@ export const AdminPanel: React.FC = () => {
                           const variations = (editingProduct.variations || []).filter((_, i) => i !== idx);
                           setEditingProduct({ ...editingProduct, variations });
                         }}
-                        className="p-1 text-neutral-400 hover:text-red-500"
+                        className="p-0.5 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Tamanhos Disponíveis */}
+              <div className="border border-neutral-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Tamanhos Disponíveis</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const variations = editingProduct.variations || [];
+                      const sizes = ['PP', 'P', 'M', 'G', 'GG'];
+                      const usedSizes = variations.map(v => v.size);
+                      const nextSize = sizes.find(s => !usedSizes.includes(s as any)) || 'M';
+                      const firstColor = variations[0]?.colorName || '';
+                      const firstHex = variations[0]?.colorHex || '#C18282';
+                      setEditingProduct({
+                        ...editingProduct,
+                        variations: [
+                          ...variations,
+                          {
+                            id: `var-${Date.now()}`,
+                            colorName: firstColor,
+                            colorHex: firstHex,
+                            size: nextSize,
+                            sku: '',
+                            price: editingProduct.price || 0,
+                            stock: 0,
+                          },
+                        ],
+                      });
+                    }}
+                    className="text-xs text-[#C18282] hover:underline font-medium flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Adicionar Tamanho
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {['PP', 'P', 'M', 'G', 'GG'].map(sz => {
+                    const isActive = (editingProduct.variations || []).some(v => v.size === sz);
+                    return (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => {
+                          const variations = editingProduct.variations || [];
+                          if (isActive) {
+                            setEditingProduct({
+                              ...editingProduct,
+                              variations: variations.filter(v => v.size !== sz),
+                            });
+                          } else {
+                            const firstColor = variations[0]?.colorName || '';
+                            const firstHex = variations[0]?.colorHex || '#C18282';
+                            setEditingProduct({
+                              ...editingProduct,
+                              variations: [
+                                ...variations,
+                                {
+                                  id: `var-${Date.now()}`,
+                                  colorName: firstColor,
+                                  colorHex: firstHex,
+                                  size: sz,
+                                  sku: '',
+                                  price: editingProduct.price || 0,
+                                  stock: 0,
+                                },
+                              ],
+                            });
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                          isActive
+                            ? 'bg-[#C18282] text-white border-[#C18282]'
+                            : 'bg-white text-neutral-600 border-neutral-200 hover:border-[#C18282] hover:text-[#C18282]'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Estoque */}
+              <div className="border border-neutral-200 rounded-lg p-4 space-y-3">
+                <label className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Estoque</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] text-neutral-500 mb-1">Quantidade em Estoque</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingProduct.stock || 0}
+                      onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-neutral-500 mb-1">Estoque Mínimo</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingProduct.minStock || 3}
+                      onChange={e => setEditingProduct({ ...editingProduct, minStock: Number(e.target.value) })}
+                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingProduct.stock > 0 ? false : true}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setEditingProduct({ ...editingProduct, stock: 0 });
+                      } else {
+                        setEditingProduct({ ...editingProduct, stock: 1 });
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-neutral-300 text-[#C18282] focus:ring-[#C18282]"
+                  />
+                  <span className="text-xs text-neutral-600">Mostrar produto como "Sem Estoque"</span>
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4">
