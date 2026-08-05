@@ -70,6 +70,9 @@ export const AdminPanel: React.FC = () => {
     updateSettings,
     addCoupon,
     toggleCouponStatus,
+    updateBanner,
+    addBanner,
+    deleteBanner,
   } = useStore();
   const { signOut, profile } = useAuth();
   const location = useLocation();
@@ -81,6 +84,8 @@ export const AdminPanel: React.FC = () => {
   const [productTab, setProductTab] = useState<'products' | 'categories' | 'variations'>('products');
   const [editingCategory, setEditingCategory] = useState<Partial<Category> | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<Partial<Banner> | null>(null);
 
   // Stats
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
@@ -765,7 +770,26 @@ export const AdminPanel: React.FC = () => {
           {/* Banners */}
           {currentPage === 'banners' && (
             <div className="space-y-4">
-              <p className="text-sm text-neutral-500">{banners.length} banners cadastrados</p>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-neutral-500">{banners.length} banners cadastrados</p>
+                <button
+                  onClick={() => {
+                    setEditingBanner({
+                      title: '',
+                      subtitle: '',
+                      desktopImage: '',
+                      mobileImage: '',
+                      position: 'hero',
+                      active: true,
+                      order: banners.length + 1,
+                    });
+                    setIsBannerModalOpen(true);
+                  }}
+                  className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Novo Banner
+                </button>
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 {banners.map(b => (
                   <div key={b.id} className="bg-white rounded-xl shadow-sm border border-neutral-100 p-4 flex gap-4">
@@ -779,6 +803,23 @@ export const AdminPanel: React.FC = () => {
                           {b.active ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingBanner(b);
+                          setIsBannerModalOpen(true);
+                        }}
+                        className="p-2 text-neutral-500 hover:text-[#C18282] hover:bg-[#C18282]/10 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteBanner(b.id)}
+                        className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1297,6 +1338,164 @@ export const AdminPanel: React.FC = () => {
                   }
                   setIsCategoryModalOpen(false);
                   setEditingCategory(null);
+                }}
+                className="flex-1 bg-[#C18282] hover:bg-[#a86a6a] text-white py-2.5 rounded-lg text-sm font-medium"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Modal */}
+      {isBannerModalOpen && editingBanner && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                {editingBanner.id ? 'Editar Banner' : 'Novo Banner'}
+              </h3>
+              <button
+                onClick={() => { setIsBannerModalOpen(false); setEditingBanner(null); }}
+                className="p-1 text-neutral-400 hover:text-neutral-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Título *</label>
+                <input
+                  type="text"
+                  value={editingBanner.title || ''}
+                  onChange={e => setEditingBanner({ ...editingBanner, title: e.target.value })}
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Subtítulo</label>
+                <input
+                  type="text"
+                  value={editingBanner.subtitle || ''}
+                  onChange={e => setEditingBanner({ ...editingBanner, subtitle: e.target.value })}
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Imagem Desktop (URL)</label>
+                <input
+                  type="url"
+                  value={editingBanner.desktopImage || ''}
+                  onChange={e => setEditingBanner({ ...editingBanner, desktopImage: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+                {editingBanner.desktopImage && (
+                  <img src={editingBanner.desktopImage} alt="" className="mt-2 w-full h-32 object-cover rounded-lg" />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Imagem Mobile (URL)</label>
+                <input
+                  type="url"
+                  value={editingBanner.mobileImage || ''}
+                  onChange={e => setEditingBanner({ ...editingBanner, mobileImage: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Texto do Botão (CTA)</label>
+                  <input
+                    type="text"
+                    value={editingBanner.ctaText || ''}
+                    onChange={e => setEditingBanner({ ...editingBanner, ctaText: e.target.value })}
+                    placeholder="Comprar Agora"
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Link do Botão (CTA)</label>
+                  <input
+                    type="url"
+                    value={editingBanner.ctaUrl || ''}
+                    onChange={e => setEditingBanner({ ...editingBanner, ctaUrl: e.target.value })}
+                    placeholder="/catalog"
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Posição</label>
+                  <select
+                    value={editingBanner.position || 'hero'}
+                    onChange={e => setEditingBanner({ ...editingBanner, position: e.target.value as any })}
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm bg-white"
+                  >
+                    <option value="hero">Hero (Topo)</option>
+                    <option value="middle">Meio da Página</option>
+                    <option value="popup">Pop-up</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Ordem</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editingBanner.order || 1}
+                    onChange={e => setEditingBanner({ ...editingBanner, order: Number(e.target.value) })}
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editingBanner.active !== false}
+                  onChange={e => setEditingBanner({ ...editingBanner, active: e.target.checked })}
+                  className="w-4 h-4 rounded border-neutral-300 text-[#C18282] focus:ring-[#C18282]"
+                />
+                <span className="text-xs text-neutral-600">Banner Ativo</span>
+              </label>
+            </div>
+
+            <div className="px-6 py-4 border-t border-neutral-200 flex gap-3">
+              <button
+                onClick={() => { setIsBannerModalOpen(false); setEditingBanner(null); }}
+                className="flex-1 border border-neutral-300 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (!editingBanner.title) return;
+                  if (editingBanner.id) {
+                    await updateBanner(editingBanner as Banner);
+                  } else {
+                    await addBanner({
+                      title: editingBanner.title,
+                      subtitle: editingBanner.subtitle || '',
+                      desktopImage: editingBanner.desktopImage || '',
+                      mobileImage: editingBanner.mobileImage || '',
+                      ctaText: editingBanner.ctaText,
+                      ctaUrl: editingBanner.ctaUrl,
+                      position: editingBanner.position || 'hero',
+                      active: editingBanner.active !== false,
+                      order: editingBanner.order || banners.length + 1,
+                    });
+                  }
+                  setIsBannerModalOpen(false);
+                  setEditingBanner(null);
                 }}
                 className="flex-1 bg-[#C18282] hover:bg-[#a86a6a] text-white py-2.5 rounded-lg text-sm font-medium"
               >

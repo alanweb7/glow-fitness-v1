@@ -219,6 +219,9 @@ interface StoreContextType {
   addCoupon: (coupon: Omit<Coupon, 'id' | 'usedCount'>) => void;
   addReview: (review: Omit<Review, 'id' | 'createdAt' | 'status'>) => void;
   createOrder: (orderData: any) => Promise<Order>;
+  updateBanner: (banner: Banner) => void;
+  addBanner: (banner: Omit<Banner, 'id'>) => void;
+  deleteBanner: (id: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -758,6 +761,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
+  const updateBanner = async (updated: Banner) => {
+    await supabase.from('banners').update({
+      title: updated.title,
+      subtitle: updated.subtitle,
+      desktop_image: updated.desktopImage,
+      mobile_image: updated.mobileImage,
+      cta_text: updated.ctaText,
+      cta_url: updated.ctaUrl,
+      position: updated.position,
+      active: updated.active,
+      order: updated.order,
+    }).eq('id', updated.id);
+    setBanners(prev => prev.map(b => b.id === updated.id ? updated : b));
+  };
+
+  const addBanner = async (bData: Omit<Banner, 'id'>) => {
+    const id = `banner-${Date.now()}`;
+    await supabase.from('banners').insert({
+      id,
+      title: bData.title,
+      subtitle: bData.subtitle,
+      desktop_image: bData.desktopImage,
+      mobile_image: bData.mobileImage,
+      cta_text: bData.ctaText,
+      cta_url: bData.ctaUrl,
+      position: bData.position,
+      active: bData.active,
+      order: bData.order,
+    });
+    setBanners(prev => [...prev, { ...bData, id }]);
+  };
+
+  const deleteBanner = async (id: string) => {
+    await supabase.from('banners').delete().eq('id', id);
+    setBanners(prev => prev.filter(b => b.id !== id));
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -808,6 +848,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addCoupon,
         addReview,
         createOrder,
+        updateBanner,
+        addBanner,
+        deleteBanner,
       }}
     >
       {children}
