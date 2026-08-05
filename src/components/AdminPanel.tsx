@@ -38,8 +38,9 @@ import { ImageUpload } from './ImageUpload';
 import { AdminUsers } from './AdminUsers';
 import { AdminRoles } from './AdminRoles';
 import { AdminVariations } from './AdminVariations';
+import { AdminPages } from './AdminPages';
 
-type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'blog' | 'settings' | 'users' | 'roles';
+type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'pages' | 'blog' | 'settings' | 'users' | 'roles';
 
 const menuItems: { id: AdminPage; label: string; icon: React.ReactNode; badge?: number }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -47,6 +48,7 @@ const menuItems: { id: AdminPage; label: string; icon: React.ReactNode; badge?: 
   { id: 'orders', label: 'Pedidos', icon: <ShoppingBag className="w-5 h-5" /> },
   { id: 'coupons', label: 'Cupons', icon: <Tag className="w-5 h-5" /> },
   { id: 'banners', label: 'Banners', icon: <Image className="w-5 h-5" /> },
+  { id: 'pages', label: 'Páginas', icon: <FileText className="w-5 h-5" /> },
   { id: 'blog', label: 'Blog', icon: <FileText className="w-5 h-5" /> },
   { id: 'users', label: 'Usuários', icon: <Users className="w-5 h-5" /> },
   { id: 'roles', label: 'Perfis de Acesso', icon: <Shield className="w-5 h-5" /> },
@@ -279,7 +281,7 @@ export const AdminPanel: React.FC = () => {
 
         {/* Page Content */}
         <main className="p-6">
-          {!['dashboard', 'products', 'orders', 'coupons', 'banners', 'blog', 'settings', 'users', 'roles'].includes(currentPage) && (
+          {!['dashboard', 'products', 'orders', 'coupons', 'banners', 'pages', 'blog', 'settings', 'users', 'roles'].includes(currentPage) && (
             <div className="text-center py-20">
               <p className="text-neutral-500 text-sm">Página não encontrada.</p>
               <Link to="/admin/dashboard" className="text-[#C18282] text-sm font-semibold underline mt-2 inline-block">
@@ -827,6 +829,9 @@ export const AdminPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Pages */}
+          {currentPage === 'pages' && <AdminPages />}
 
           {/* Blog */}
           {currentPage === 'blog' && (
