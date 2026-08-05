@@ -34,6 +34,7 @@ import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { Product, Order, Category, Coupon } from '../types';
 import { ImageGallery } from './ImageGallery';
+import { ImageUpload } from './ImageUpload';
 import { AdminUsers } from './AdminUsers';
 import { AdminRoles } from './AdminRoles';
 import { AdminVariations } from './AdminVariations';
@@ -1385,30 +1386,19 @@ export const AdminPanel: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1">Imagem Desktop (URL)</label>
-                <input
-                  type="url"
-                  value={editingBanner.desktopImage || ''}
-                  onChange={e => setEditingBanner({ ...editingBanner, desktopImage: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                />
-                {editingBanner.desktopImage && (
-                  <img src={editingBanner.desktopImage} alt="" className="mt-2 w-full h-32 object-cover rounded-lg" />
-                )}
-              </div>
+              <ImageUpload
+                label="Imagem Desktop"
+                value={editingBanner.desktopImage || ''}
+                onChange={url => setEditingBanner({ ...editingBanner, desktopImage: url })}
+                bucket="banner-images"
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1">Imagem Mobile (URL)</label>
-                <input
-                  type="url"
-                  value={editingBanner.mobileImage || ''}
-                  onChange={e => setEditingBanner({ ...editingBanner, mobileImage: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                />
-              </div>
+              <ImageUpload
+                label="Imagem Mobile"
+                value={editingBanner.mobileImage || ''}
+                onChange={url => setEditingBanner({ ...editingBanner, mobileImage: url })}
+                bucket="banner-images"
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
