@@ -64,7 +64,7 @@ export const AdminPanel: React.FC = () => {
     banners,
     settings,
     updateProduct,
-    createProduct,
+    addProduct,
     deleteProduct,
     updateCategory,
     addCategory,
@@ -103,7 +103,7 @@ export const AdminPanel: React.FC = () => {
     if (editingProduct.id) {
       await updateProduct(editingProduct as Product);
     } else {
-      await createProduct({
+      await addProduct({
         name: editingProduct.name,
         slug: editingProduct.name.toLowerCase().replace(/\s+/g, '-'),
         price: Number(editingProduct.price),
@@ -547,7 +547,11 @@ export const AdminPanel: React.FC = () => {
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => deleteProduct(p.id)}
+                                  onClick={() => {
+  if (confirm(`Deseja mesmo excluir o produto "${p.name}"?`)) {
+    deleteProduct(p.id);
+  }
+}}
                                   className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
