@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, User, Sparkles, LayoutDashboard, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, User, Sparkles, Menu, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export const Header: React.FC = () => {
@@ -19,21 +19,6 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-[#1A1A1A] text-white shadow-md">
-      {/* Admin Quick Switcher Top Bar */}
-      <div className="bg-[#262626] border-b border-neutral-800 py-1 px-4 text-xs flex justify-between items-center text-neutral-300">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Modo Loja Virtual</span>
-        </div>
-        <Link
-          to="/admin"
-          className="flex items-center gap-1.5 bg-[#C18282] hover:bg-[#a96e6e] text-white px-2.5 py-0.5 rounded text-xs font-semibold transition-colors"
-        >
-          <LayoutDashboard className="w-3.5 h-3.5" />
-          Painel Admin
-        </Link>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
