@@ -28,6 +28,7 @@ import {
   Star,
   Eye,
   Shield,
+  Palette,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
@@ -913,7 +914,7 @@ export const AdminPanel: React.FC = () => {
               />
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome do Produto</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome do Produto *</label>
                 <input
                   type="text"
                   required
@@ -923,9 +924,31 @@ export const AdminPanel: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Descrição Curta</label>
+                <input
+                  type="text"
+                  value={editingProduct.shortDescription || ''}
+                  onChange={e => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
+                  placeholder="Resumo do produto (aparece na listagem)"
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Descrição Completa</label>
+                <textarea
+                  value={editingProduct.fullDescription || ''}
+                  onChange={e => setEditingProduct({ ...editingProduct, fullDescription: e.target.value })}
+                  placeholder="Descrição detalhada do produto (aparece na página do produto)"
+                  rows={3}
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm resize-none"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Preço (R$)</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Preço (R$) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -958,6 +981,108 @@ export const AdminPanel: React.FC = () => {
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Variations Section */}
+              <div className="border border-neutral-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-[#C18282]" />
+                    <label className="text-xs font-semibold text-neutral-700">Variações (Cor / Tamanho)</label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const variations = editingProduct.variations || [];
+                      setEditingProduct({
+                        ...editingProduct,
+                        variations: [
+                          ...variations,
+                          {
+                            id: `var-${Date.now()}`,
+                            colorName: '',
+                            colorHex: '#C18282',
+                            size: 'M',
+                            sku: '',
+                            price: editingProduct.price || 0,
+                            stock: 0,
+                          },
+                        ],
+                      });
+                    }}
+                    className="text-xs text-[#C18282] hover:underline font-medium flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Adicionar
+                  </button>
+                </div>
+
+                {(editingProduct.variations || []).length === 0 && (
+                  <p className="text-xs text-neutral-400 text-center py-3">
+                    Nenhuma variação. Clique em "Adicionar" para criar cores e tamanhos.
+                  </p>
+                )}
+
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {(editingProduct.variations || []).map((v, idx) => (
+                    <div key={v.id || idx} className="flex items-center gap-2 bg-neutral-50 rounded-lg p-2">
+                      <input
+                        type="color"
+                        value={v.colorHex || '#000000'}
+                        onChange={e => {
+                          const variations = [...(editingProduct.variations || [])];
+                          variations[idx] = { ...variations[idx], colorHex: e.target.value };
+                          setEditingProduct({ ...editingProduct, variations });
+                        }}
+                        className="w-8 h-8 rounded border border-neutral-300 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={v.colorName || ''}
+                        onChange={e => {
+                          const variations = [...(editingProduct.variations || [])];
+                          variations[idx] = { ...variations[idx], colorName: e.target.value };
+                          setEditingProduct({ ...editingProduct, variations });
+                        }}
+                        placeholder="Cor"
+                        className="w-24 p-1.5 border border-neutral-300 rounded text-xs"
+                      />
+                      <select
+                        value={v.size || 'M'}
+                        onChange={e => {
+                          const variations = [...(editingProduct.variations || [])];
+                          variations[idx] = { ...variations[idx], size: e.target.value as any };
+                          setEditingProduct({ ...editingProduct, variations });
+                        }}
+                        className="w-16 p-1.5 border border-neutral-300 rounded text-xs bg-white"
+                      >
+                        {['PP', 'P', 'M', 'G', 'GG'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        value={v.stock || 0}
+                        onChange={e => {
+                          const variations = [...(editingProduct.variations || [])];
+                          variations[idx] = { ...variations[idx], stock: Number(e.target.value) };
+                          setEditingProduct({ ...editingProduct, variations });
+                        }}
+                        placeholder="Estoque"
+                        className="w-16 p-1.5 border border-neutral-300 rounded text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const variations = (editingProduct.variations || []).filter((_, i) => i !== idx);
+                          setEditingProduct({ ...editingProduct, variations });
+                        }}
+                        className="p-1 text-neutral-400 hover:text-red-500"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
