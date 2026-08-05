@@ -5,7 +5,9 @@ import { supabase } from '../lib/supabase';
 interface UserProfile {
   id: string;
   fullName: string;
-  role: 'admin' | 'manager' | 'customer';
+  role: string;
+  roleId?: string;
+  permissions: string[];
 }
 
 interface AuthContextType {
@@ -16,6 +18,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  hasPermission: (permissionId: string) => boolean;
+  hasAnyPermission: (permissionIds: string[]) => boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,13 +64,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (data) {
+      // Load permissions via RPC
+      const { data: permData } = await supabase
+        .rpc('get_user_permissions', { user_uuid: userId });
+
+      const permissions = permData?.map((p: any) => p.permission_id) || [];
+
       setProfile({
         id: data.id,
         fullName: data.full_name,
         role: data.role,
+        roleId: data.role_id,
+        permissions,
       });
     } else {
-      // If no profile exists, create one from user metadata
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
         const meta = userData.user.user_metadata;
@@ -73,11 +85,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: userId,
           fullName: meta?.full_name || userData.user.email || '',
           role: meta?.role || 'customer',
+          permissions: [],
         };
         setProfile(newProfile);
       }
     }
     setLoading(false);
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await loadProfile(user.id);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -94,8 +113,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = profile?.role === 'admin';
 
+  const hasPermission = (permissionId: string): boolean => {
+    if (!profile) return false;
+    if (profile.role === 'admin') return true;
+    return profile.permissions.includes(permissionId);
+  };
+
+  const hasAnyPermission = (permissionIds: string[]): boolean => {
+    if (!profile) return false;
+    if (profile.role === 'admin') return true;
+    return permissionIds.some(p => profile.permissions.includes(p));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signOut, isAdmin, hasPermission, hasAnyPermission, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
