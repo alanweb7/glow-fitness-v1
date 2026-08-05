@@ -228,3 +228,38 @@ export interface BlogPost {
   tags: string[];
   createdAt: string;
 }
+
+// =============================================
+// ROLES & PERMISSIONS
+// =============================================
+
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  isSystem: boolean;
+  createdAt: string;
+}
+
+export interface Permission {
+  id: string;
+  module: string;
+  action: string;
+  description?: string;
+}
+
+export interface RolePermission {
+  roleId: string;
+  permissionId: string;
+}
+
+export interface UserRole {
+  id: string;
+  fullName: string;
+  email?: string;
+  role: string;
+  roleId?: string;
+  roleName?: string;
+  permissions?: string[];
+  createdAt: string;
+}
