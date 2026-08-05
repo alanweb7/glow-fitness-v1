@@ -263,3 +263,27 @@ export interface UserRole {
   permissions?: string[];
   createdAt: string;
 }
+
+// =============================================
+// PRODUCT OPTIONS (VARIATIONS)
+// =============================================
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  type: 'size' | 'color' | 'material' | 'style';
+  values: ProductOptionValue[];
+  createdAt: string;
+}
+
+export interface ProductOptionValue {
+  id: string;
+  optionId: string;
+  label: string;
+  value: string;
+  colorHex?: string;
+  sku?: string;
+  extraPrice?: number;
+  stock?: number;
+  order: number;
+}

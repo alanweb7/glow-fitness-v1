@@ -35,6 +35,7 @@ import { Product, Order, Category, Coupon } from '../types';
 import { ImageGallery } from './ImageGallery';
 import { AdminUsers } from './AdminUsers';
 import { AdminRoles } from './AdminRoles';
+import { AdminVariations } from './AdminVariations';
 
 type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'blog' | 'settings' | 'users' | 'roles';
 
@@ -61,6 +62,9 @@ export const AdminPanel: React.FC = () => {
     updateProduct,
     createProduct,
     deleteProduct,
+    updateCategory,
+    addCategory,
+    deleteCategory,
     updateOrderStatus,
     updateSettings,
     addCoupon,
@@ -73,6 +77,9 @@ export const AdminPanel: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [productTab, setProductTab] = useState<'products' | 'categories' | 'variations'>('products');
+  const [editingCategory, setEditingCategory] = useState<Partial<Category> | null>(null);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   // Stats
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
@@ -416,96 +423,212 @@ export const AdminPanel: React.FC = () => {
           {/* Products */}
           {currentPage === 'products' && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-neutral-500">{products.length} produtos cadastrados</p>
+              {/* Tabs */}
+              <div className="flex border-b border-neutral-200">
                 <button
-                  onClick={() => {
-                    setEditingProduct({
-                      name: '',
-                      price: 99.9,
-                      promotionalPrice: 79.9,
-                      categoryId: categories[0]?.id,
-                      isNew: true,
-                      isFeatured: true,
-                      images: [],
-                    });
-                    setIsProductModalOpen(true);
-                  }}
-                  className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                  onClick={() => setProductTab('products')}
+                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    productTab === 'products'
+                      ? 'border-[#C18282] text-[#C18282]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                  }`}
                 >
-                  <Plus className="w-4 h-4" /> Novo Produto
+                  Produtos
+                </button>
+                <button
+                  onClick={() => setProductTab('categories')}
+                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    productTab === 'categories'
+                      ? 'border-[#C18282] text-[#C18282]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                  }`}
+                >
+                  Categorias
+                </button>
+                <button
+                  onClick={() => setProductTab('variations')}
+                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    productTab === 'variations'
+                      ? 'border-[#C18282] text-[#C18282]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                  }`}
+                >
+                  Variações
                 </button>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
-                    <tr>
-                      <th className="px-6 py-3 text-left font-semibold">Produto</th>
-                      <th className="px-6 py-3 text-left font-semibold">Categoria</th>
-                      <th className="px-6 py-3 text-left font-semibold">Preço</th>
-                      <th className="px-6 py-3 text-left font-semibold">Estoque</th>
-                      <th className="px-6 py-3 text-left font-semibold">Status</th>
-                      <th className="px-6 py-3 text-right font-semibold">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-100">
-                    {products.map(p => (
-                      <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <img src={p.images[0]} alt="" className="w-10 h-12 rounded object-cover" />
-                            <div>
-                              <p className="font-medium text-neutral-900">{p.name}</p>
-                              <p className="text-xs text-neutral-500">{p.sku}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-neutral-600">{p.categoryName}</td>
-                        <td className="px-6 py-4">
-                          <span className="font-bold text-neutral-900">R$ {p.price.toFixed(2).replace('.', ',')}</span>
-                          {p.promotionalPrice && p.promotionalPrice < p.price && (
-                            <span className="block text-xs text-emerald-600">Oferta: R$ {p.promotionalPrice.toFixed(2).replace('.', ',')}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`font-medium ${p.stock <= p.minStock ? 'text-red-600' : 'text-neutral-900'}`}>
-                            {p.stock} un.
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                            p.status === 'draft' ? 'bg-amber-100 text-amber-700' :
-                            'bg-neutral-100 text-neutral-500'
-                          }`}>
-                            {p.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => {
-                                setEditingProduct(p);
-                                setIsProductModalOpen(true);
-                              }}
-                              className="p-2 text-neutral-500 hover:text-[#C18282] hover:bg-[#C18282]/10 rounded-lg transition-colors"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteProduct(p.id)}
-                              className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {/* Products Tab */}
+              {productTab === 'products' && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-neutral-500">{products.length} produtos cadastrados</p>
+                    <button
+                      onClick={() => {
+                        setEditingProduct({
+                          name: '',
+                          price: 99.9,
+                          promotionalPrice: 79.9,
+                          categoryId: categories[0]?.id,
+                          isNew: true,
+                          isFeatured: true,
+                          images: [],
+                        });
+                        setIsProductModalOpen(true);
+                      }}
+                      className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Novo Produto
+                    </button>
+                  </div>
+
+                  <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                          <th className="px-6 py-3 text-left font-semibold">Categoria</th>
+                          <th className="px-6 py-3 text-left font-semibold">Preço</th>
+                          <th className="px-6 py-3 text-left font-semibold">Estoque</th>
+                          <th className="px-6 py-3 text-left font-semibold">Status</th>
+                          <th className="px-6 py-3 text-right font-semibold">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {products.map(p => (
+                          <tr key={p.id} className="hover:bg-neutral-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <img src={p.images[0]} alt="" className="w-10 h-12 rounded object-cover" />
+                                <div>
+                                  <p className="font-medium text-neutral-900">{p.name}</p>
+                                  <p className="text-xs text-neutral-500">{p.sku}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-neutral-600">{p.categoryName}</td>
+                            <td className="px-6 py-4">
+                              <span className="font-bold text-neutral-900">R$ {p.price.toFixed(2).replace('.', ',')}</span>
+                              {p.promotionalPrice && p.promotionalPrice < p.price && (
+                                <span className="block text-xs text-emerald-600">Oferta: R$ {p.promotionalPrice.toFixed(2).replace('.', ',')}</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`font-medium ${p.stock <= p.minStock ? 'text-red-600' : 'text-neutral-900'}`}>
+                                {p.stock} un.
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                                p.status === 'draft' ? 'bg-amber-100 text-amber-700' :
+                                'bg-neutral-100 text-neutral-500'
+                              }`}>
+                                {p.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingProduct(p);
+                                    setIsProductModalOpen(true);
+                                  }}
+                                  className="p-2 text-neutral-500 hover:text-[#C18282] hover:bg-[#C18282]/10 rounded-lg transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteProduct(p.id)}
+                                  className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {/* Categories Tab */}
+              {productTab === 'categories' && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-neutral-500">{categories.length} categorias cadastradas</p>
+                    <button
+                      onClick={() => {
+                        setEditingCategory({ name: '', slug: '', active: true, order: categories.length + 1 });
+                        setIsCategoryModalOpen(true);
+                      }}
+                      className="bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Nova Categoria
+                    </button>
+                  </div>
+
+                  <div className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="px-6 py-3 text-left font-semibold">Categoria</th>
+                          <th className="px-6 py-3 text-left font-semibold">Slug</th>
+                          <th className="px-6 py-3 text-left font-semibold">Ordem</th>
+                          <th className="px-6 py-3 text-left font-semibold">Status</th>
+                          <th className="px-6 py-3 text-right font-semibold">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {categories.map(c => (
+                          <tr key={c.id} className="hover:bg-neutral-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                {c.image && (
+                                  <img src={c.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                                )}
+                                <span className="font-medium text-neutral-900">{c.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-neutral-500 font-mono text-xs">{c.slug}</td>
+                            <td className="px-6 py-4 text-neutral-500">{c.order}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'
+                              }`}>
+                                {c.active ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingCategory(c);
+                                    setIsCategoryModalOpen(true);
+                                  }}
+                                  className="p-2 text-neutral-500 hover:text-[#C18282] hover:bg-[#C18282]/10 rounded-lg transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteCategory(c.id)}
+                                  className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {/* Variations Tab */}
+              {productTab === 'variations' && <AdminVariations />}
             </div>
           )}
 
@@ -853,6 +976,114 @@ export const AdminPanel: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Modal */}
+      {isCategoryModalOpen && editingCategory && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl">
+            <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                {editingCategory.id ? 'Editar Categoria' : 'Nova Categoria'}
+              </h3>
+              <button
+                onClick={() => { setIsCategoryModalOpen(false); setEditingCategory(null); }}
+                className="p-1 text-neutral-400 hover:text-neutral-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome *</label>
+                <input
+                  type="text"
+                  value={editingCategory.name || ''}
+                  onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Slug</label>
+                <input
+                  type="text"
+                  value={editingCategory.slug || ''}
+                  onChange={e => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                  placeholder="gerado-automaticamente"
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Descrição</label>
+                <textarea
+                  value={editingCategory.description || ''}
+                  onChange={e => setEditingCategory({ ...editingCategory, description: e.target.value })}
+                  rows={2}
+                  className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Ordem</label>
+                  <input
+                    type="number"
+                    value={editingCategory.order || 1}
+                    onChange={e => setEditingCategory({ ...editingCategory, order: Number(e.target.value) })}
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">Status</label>
+                  <select
+                    value={editingCategory.active ? 'true' : 'false'}
+                    onChange={e => setEditingCategory({ ...editingCategory, active: e.target.value === 'true' })}
+                    className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm bg-white"
+                  >
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-neutral-200 flex gap-3">
+              <button
+                onClick={() => { setIsCategoryModalOpen(false); setEditingCategory(null); }}
+                className="flex-1 border border-neutral-300 py-2.5 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (!editingCategory.name) return;
+                  const slug = editingCategory.slug || editingCategory.name.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+                  if (editingCategory.id) {
+                    await updateCategory({ ...editingCategory, slug } as Category);
+                  } else {
+                    await addCategory({
+                      name: editingCategory.name,
+                      slug,
+                      description: editingCategory.description || '',
+                      image: editingCategory.image || '',
+                      order: editingCategory.order || categories.length + 1,
+                      active: editingCategory.active !== false,
+                    });
+                  }
+                  setIsCategoryModalOpen(false);
+                  setEditingCategory(null);
+                }}
+                className="flex-1 bg-[#C18282] hover:bg-[#a86a6a] text-white py-2.5 rounded-lg text-sm font-medium"
+              >
+                Salvar
+              </button>
+            </div>
           </div>
         </div>
       )}
