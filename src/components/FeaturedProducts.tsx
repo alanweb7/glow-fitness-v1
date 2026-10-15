@@ -10,7 +10,7 @@ export const FeaturedProducts: React.FC = () => {
   const featured = products.filter(p => p.isFeatured).slice(0, 4);
 
   return (
-    <section id="destaques" className="py-14 sm:py-20 bg-[#FAF7F6]">
+    <section id="destaques" className="py-14 sm:py-20 bg-[#fcfce6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-sans uppercase tracking-[0.25em] text-sm sm:text-base font-semibold text-[#1A1A1A] mb-10 sm:mb-14">
           DESTAQUES

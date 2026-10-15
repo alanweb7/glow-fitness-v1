@@ -50,7 +50,7 @@ export const CatalogView: React.FC = () => {
   const currentCategory = categories.find(c => c.id === categoryId || c.slug === categoryId);
 
   return (
-    <div className="py-12 bg-[#FAF7F6] min-h-screen font-sans">
+    <div className="py-12 bg-[#fcfce6] min-h-screen font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header Title */}

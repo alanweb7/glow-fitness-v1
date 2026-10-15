@@ -11,7 +11,7 @@ export const CategoriesSection: React.FC = () => {
   };
 
   return (
-    <section className="py-12 sm:py-16 bg-[#FDFCFB] border-b border-[#1A1A1A]/10">
+    <section className="py-12 sm:py-16 bg-[#fcfce6] border-b border-[#1A1A1A]/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-center font-sans uppercase tracking-[0.25em] text-sm sm:text-base font-semibold text-[#1A1A1A] mb-8 sm:mb-12">
           CATEGORIAS

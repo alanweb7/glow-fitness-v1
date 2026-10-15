@@ -33,7 +33,7 @@ export const BlogView: React.FC = () => {
   ];
 
   return (
-    <div className="py-16 bg-[#FAF7F6] min-h-screen font-sans">
+    <div className="py-16 bg-[#fcfce6] min-h-screen font-sans">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         <div className="text-center space-y-3">

@@ -47,7 +47,7 @@ export const AboutSection: React.FC = () => {
   const imageUrl = featuredImage || content.heroImage || DEFAULT_CONTENT.heroImage!;
 
   return (
-    <section className="py-16 sm:py-24 bg-[#E2B3B1]/30 border-t border-b border-[#1A1A1A]/10">
+    <section className="py-16 sm:py-24 bg-[#fce8f9] border-t border-b border-[#1A1A1A]/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           

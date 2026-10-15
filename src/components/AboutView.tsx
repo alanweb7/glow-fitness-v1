@@ -68,7 +68,7 @@ export const AboutView: React.FC = () => {
   const imageUrl = featuredImage || content.heroImage || DEFAULT_CONTENT.heroImage!;
 
   return (
-    <div className="py-16 bg-[#FAF7F6] min-h-screen font-sans">
+    <div className="py-16 bg-[#fce8f9] min-h-screen font-sans">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Title */}
