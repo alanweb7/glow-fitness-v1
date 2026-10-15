@@ -26,7 +26,7 @@ import { Loader2 } from 'lucide-react';
 // Store Layout (public pages)
 const StoreLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FDFCFB] text-[#1A1A1A] selection:bg-[#C18282] selection:text-white font-sans antialiased">
+    <div className="min-h-screen flex flex-col justify-between bg-[var(--color-bg,#FDFCFB)] text-[var(--color-text,#1A1A1A)] selection:bg-[#C18282] selection:text-white font-sans antialiased">
       <div>
         <TopAnnouncementBar />
         <Header />

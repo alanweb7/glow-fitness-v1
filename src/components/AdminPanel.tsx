@@ -39,6 +39,7 @@ import { AdminUsers } from './AdminUsers';
 import { AdminRoles } from './AdminRoles';
 import { AdminVariations } from './AdminVariations';
 import { AdminPages } from './AdminPages';
+import { AdminColors } from './AdminColors';
 
 type AdminPage = 'dashboard' | 'products' | 'orders' | 'coupons' | 'banners' | 'pages' | 'blog' | 'settings' | 'users' | 'roles';
 
@@ -89,6 +90,7 @@ export const AdminPanel: React.FC = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Partial<Banner> | null>(null);
+  const [settingsTab, setSettingsTab] = useState<'general' | 'colors'>('general');
 
   // Stats
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
@@ -855,92 +857,120 @@ export const AdminPanel: React.FC = () => {
           {/* Settings */}
           {currentPage === 'settings' && (
             <div className="space-y-4">
-              <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
-                <h3 className="font-semibold text-neutral-800 mb-4">Configurações da Loja</h3>
-                
-                {/* Logo Upload */}
-                <div className="mb-6 pb-6 border-b border-neutral-200">
-                  <ImageUpload
-                    label="Logo da Loja"
-                    value={settings.logoUrl || ''}
-                    onChange={url => updateSettings({ logoUrl: url })}
-                    bucket="general"
-                  />
-                  <p className="text-[10px] text-neutral-400 mt-1">Recomendado: PNG transparente, 300x100px</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome da Loja</label>
-                    <input
-                      type="text"
-                      value={settings.storeName}
-                      onChange={e => updateSettings({ storeName: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={settings.email}
-                      onChange={e => updateSettings({ email: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Telefone</label>
-                    <input
-                      type="text"
-                      value={settings.phone}
-                      onChange={e => updateSettings({ phone: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">WhatsApp</label>
-                    <input
-                      type="text"
-                      value={settings.whatsapp}
-                      onChange={e => updateSettings({ whatsapp: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Slogan</label>
-                    <input
-                      type="text"
-                      value={settings.slogan}
-                      onChange={e => updateSettings({ slogan: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Endereço</label>
-                    <input
-                      type="text"
-                      value={settings.address}
-                      onChange={e => updateSettings({ address: e.target.value })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">Frete Grátis Acima de (R$)</label>
-                    <input
-                      type="number"
-                      value={settings.freeShippingThreshold}
-                      onChange={e => updateSettings({ freeShippingThreshold: Number(e.target.value) })}
-                      className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
-                    />
-                  </div>
-                </div>
+              {/* Tabs */}
+              <div className="flex border-b border-neutral-200">
                 <button
-                  onClick={() => {}}
-                  className="mt-6 bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors"
+                  onClick={() => setSettingsTab('general')}
+                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                    settingsTab === 'general'
+                      ? 'border-[#C18282] text-[#C18282]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                  }`}
                 >
-                  Salvar Alterações
+                  <Settings className="w-4 h-4" /> Geral
+                </button>
+                <button
+                  onClick={() => setSettingsTab('colors')}
+                  className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                    settingsTab === 'colors'
+                      ? 'border-[#C18282] text-[#C18282]'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                  }`}
+                >
+                  <Palette className="w-4 h-4" /> Cores do Site
                 </button>
               </div>
+
+              {settingsTab === 'general' && (
+                <div className="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
+                  <h3 className="font-semibold text-neutral-800 mb-4">Configurações da Loja</h3>
+
+                  {/* Logo Upload */}
+                  <div className="mb-6 pb-6 border-b border-neutral-200">
+                    <ImageUpload
+                      label="Logo da Loja"
+                      value={settings.logoUrl || ''}
+                      onChange={url => updateSettings({ logoUrl: url })}
+                      bucket="general"
+                    />
+                    <p className="text-[10px] text-neutral-400 mt-1">Recomendado: PNG transparente, 300x100px</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Nome da Loja</label>
+                      <input
+                        type="text"
+                        value={settings.storeName}
+                        onChange={e => updateSettings({ storeName: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={settings.email}
+                        onChange={e => updateSettings({ email: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Telefone</label>
+                      <input
+                        type="text"
+                        value={settings.phone}
+                        onChange={e => updateSettings({ phone: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">WhatsApp</label>
+                      <input
+                        type="text"
+                        value={settings.whatsapp}
+                        onChange={e => updateSettings({ whatsapp: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Slogan</label>
+                      <input
+                        type="text"
+                        value={settings.slogan}
+                        onChange={e => updateSettings({ slogan: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Endereço</label>
+                      <input
+                        type="text"
+                        value={settings.address}
+                        onChange={e => updateSettings({ address: e.target.value })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-700 mb-1">Frete Grátis Acima de (R$)</label>
+                      <input
+                        type="number"
+                        value={settings.freeShippingThreshold}
+                        onChange={e => updateSettings({ freeShippingThreshold: Number(e.target.value) })}
+                        className="w-full p-2.5 border border-neutral-300 rounded-lg text-sm"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {}}
+                    className="mt-6 bg-[#C18282] hover:bg-[#a86a6a] text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              )}
+
+              {settingsTab === 'colors' && <AdminColors />}
             </div>
           )}
 
